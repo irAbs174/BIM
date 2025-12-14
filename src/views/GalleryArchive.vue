@@ -16,8 +16,19 @@
 
     <section class="archive-content">
       <div class="container">
+        <!-- Loading state -->
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>در حال بارگیری پروژه‌ها...</p>
+        </div>
+        
+        <!-- Error state -->
+        <div v-if="error && !loading" class="error-state">
+          <p>{{ error }}</p>
+        </div>
+
         <!-- Search and Filter -->
-        <div class="archive-controls">
+        <div v-if="!loading" class="archive-controls">
           <div class="search-box">
             <span class="search-icon">🔍</span>
             <input 
@@ -85,9 +96,9 @@
               <h3 class="card-title">{{ item.title }}</h3>
               <p class="card-description">{{ item.description }}</p>
               <div class="card-meta">
-                <span class="card-date">{{ item.date }}</span>
+                <span class="card-date">{{ item.date || item.created_at || 'نامشخص' }}</span>
                 <div class="card-tech">
-                  <span v-for="tech in item.technologies.slice(0, 3)" :key="tech" class="tech-tag">
+                  <span v-for="tech in (item.technologies || []).slice(0, 3)" :key="tech" class="tech-tag">
                     {{ tech }}
                   </span>
                 </div>
@@ -135,7 +146,13 @@
           <div class="modal-content" @click.stop>
             <button class="modal-close" @click="closeModal">✕</button>
             
-            <div class="modal-image" :style="{ background: selectedItem.gradient }">
+            <ImageSlider
+              v-if="selectedItem.images && selectedItem.images.length > 0"
+              :item="selectedItem"
+              :icon="selectedItem.icon"
+              class="modal-image"
+            />
+            <div v-else class="modal-image" :style="{ background: selectedItem.gradient }">
               <span class="modal-icon">{{ selectedItem.icon }}</span>
             </div>
             
@@ -157,10 +174,6 @@
                 <div class="detail-item">
                   <span class="detail-label">تاریخ:</span>
                   <span class="detail-value">{{ selectedItem.date }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">بازدید:</span>
-                  <span class="detail-value">{{ selectedItem.views }}</span>
                 </div>
               </div>
               
@@ -191,7 +204,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
+import { getGalleryItems, getSlider } from '../api/services'
 import ImageSlider from '../components/ImageSlider.vue'
 import Navbar from '../components/Navbar.vue'
 import Footer from '../components/Footer.vue'
@@ -205,123 +219,12 @@ const viewMode = ref('grid')
 const currentPage = ref(1)
 const itemsPerPage = 12
 const selectedItem = ref(null)
+const loading = ref(true)
+const error = ref(null)
 
-const categories = ['همه', 'وب اپلیکیشن', 'موبایل اپ', 'طراحی رابط', 'برندینگ', 'داشبورد']
+const categories = ref(['همه'])
 
-const galleryItems = ref([
-  {
-    id: 1,
-    title: 'داشبورد مدیریتی پیشرفته',
-    description: 'سیستم جامع مدیریت با امکانات گسترده برای کنترل کامل کسب و کار',
-    icon: '📊',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    category: 'داشبورد',
-    categoryColor: '#667eea',
-    date: 'دی ۱۴۰۳',
-    duration: '۳ ماه',
-    views: '۵٫۲ هزار',
-    comments: '۱۲۳',
-    technologies: ['Vue.js', 'Node.js', 'MongoDB', 'Chart.js', 'Socket.io']
-  },
-  {
-    id: 2,
-    title: 'اپلیکیشن موبایل فروشگاهی',
-    description: 'اپلیکیشن فروشگاه آنلاین با تجربه کاربری عالی و امکانات پیشرفته',
-    icon: '📱',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    category: 'موبایل اپ',
-    categoryColor: '#f093fb',
-    date: 'آذر ۱۴۰۳',
-    duration: '۴ ماه',
-    views: '۷٫۸ هزار',
-    comments: '۲۴۵',
-    technologies: ['React Native', 'Redux', 'Firebase', 'Stripe']
-  },
-  {
-    id: 3,
-    title: 'وب‌سایت شرکتی مدرن',
-    description: 'طراحی و توسعه وبسایت شرکتی با استانداردهای روز دنیا',
-    icon: '🌐',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    category: 'وب اپلیکیشن',
-    categoryColor: '#4facfe',
-    date: 'آبان ۱۴۰۳',
-    duration: '۲ ماه',
-    views: '۳٫۵ هزار',
-    comments: '۸۹',
-    technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Vercel']
-  },
-  {
-    id: 4,
-    title: 'سیستم رزرو آنلاین',
-    description: 'پلتفرم رزرواسیون هوشمند برای هتل‌ها و رستوران‌ها',
-    icon: '🎫',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    category: 'وب اپلیکیشن',
-    categoryColor: '#43e97b',
-    date: 'مهر ۱۴۰۳',
-    duration: '۵ ماه',
-    views: '۴٫۳ هزار',
-    comments: '۱۵۶',
-    technologies: ['Laravel', 'Vue.js', 'MySQL', 'Redis']
-  },
-  {
-    id: 5,
-    title: 'طراحی هویت بصری برند',
-    description: 'ایجاد هویت بصری کامل شامل لوگو، رنگ و تایپوگرافی',
-    icon: '🎨',
-    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    category: 'برندینگ',
-    categoryColor: '#fa709a',
-    date: 'شهریور ۱۴۰۳',
-    duration: '۱ ماه',
-    views: '۲٫۹ هزار',
-    comments: '۶۷',
-    technologies: ['Figma', 'Adobe Illustrator', 'Adobe Photoshop']
-  },
-  {
-    id: 6,
-    title: 'رابط کاربری اپلیکیشن بانکی',
-    description: 'طراحی UI/UX مدرن برای اپلیکیشن بانکداری موبایل',
-    icon: '💳',
-    gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-    category: 'طراحی رابط',
-    categoryColor: '#30cfd0',
-    date: 'مرداد ۱۴۰۳',
-    duration: '۳ ماه',
-    views: '۶٫۱ هزار',
-    comments: '۱۹۸',
-    technologies: ['Figma', 'Sketch', 'Principle', 'InVision']
-  },
-  {
-    id: 7,
-    title: 'پلتفرم یادگیری آنلاین',
-    description: 'سیستم مدیریت آموزش (LMS) با قابلیت‌های پیشرفته',
-    icon: '🎓',
-    gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    category: 'وب اپلیکیشن',
-    categoryColor: '#a8edea',
-    date: 'تیر ۱۴۰۳',
-    duration: '۶ ماه',
-    views: '۸٫۵ هزار',
-    comments: '۳۱۲',
-    technologies: ['Django', 'React', 'PostgreSQL', 'WebRTC']
-  },
-  {
-    id: 8,
-    title: 'اپلیکیشن تناسب اندام',
-    description: 'برنامه ورزشی هوشمند با برنامه‌ریزی شخصی‌سازی شده',
-    icon: '💪',
-    gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    category: 'موبایل اپ',
-    categoryColor: '#ff9a9e',
-    date: 'خرداد ۱۴۰۳',
-    duration: '۴ ماه',
-    views: '۵٫۷ هزار',
-    comments: '۱۸۹',
-    technologies: ['Flutter', 'Firebase', 'TensorFlow Lite']
-  }
-])
+const galleryItems = ref([])
 
 const filteredItems = computed(() => {
   let filtered = galleryItems.value
@@ -372,6 +275,52 @@ const previousItem = () => {
   const prevIndex = (currentIndex - 1 + galleryItems.value.length) % galleryItems.value.length
   selectedItem.value = galleryItems.value[prevIndex]
 }
+
+// افزودن تصاویر اسلایدر به گالری
+const enrichItemWithSlider = async (item) => {
+  if (item.slider_id) {
+    try {
+      const sliderResponse = await getSlider(item.slider_id)
+      if (sliderResponse.data && sliderResponse.data.images) {
+        return {
+          ...item,
+          images: sliderResponse.data.images
+        }
+      }
+    } catch (err) {
+      console.error('Error loading slider:', err)
+    }
+  }
+  return item
+}
+
+// Fetch gallery items from API
+const fetchGalleryItems = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const response = await getGalleryItems({ page: 1, limit: 200 })
+    let items = response.data || []
+    
+    // افزودن تصاویر اسلایدر
+    items = await Promise.all(items.map(item => enrichItemWithSlider(item)))
+    
+    galleryItems.value = items
+    
+    // Update categories from API data
+    const cats = ['همه', ...new Set(galleryItems.value.map(item => item.category))]
+    categories.value = cats
+  } catch (err) {
+    console.error('Error fetching gallery items:', err)
+    error.value = 'خطا در بارگیری پروژه‌ها'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchGalleryItems()
+})
 </script>
 
 <style scoped>
@@ -1074,5 +1023,45 @@ const previousItem = () => {
   .pagination-pages {
     flex-wrap: wrap;
   }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  padding: 2rem;
+  background: #fee;
+  border: 1px solid #f99;
+  border-radius: 8px;
+  color: #c33;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.dark-mode .error-state {
+  background: rgba(204, 51, 51, 0.1);
+  border-color: #c33;
+  color: #ff6666;
 }
 </style>

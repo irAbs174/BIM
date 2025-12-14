@@ -57,6 +57,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { getTestimonials } from '../api/services'
 
 const testimonials = ref([
   {
@@ -108,6 +109,7 @@ const testimonials = ref([
 
 const currentIndex = ref(0)
 let autoPlayInterval = null
+const loading = ref(true)
 
 const nextTestimonial = () => {
   currentIndex.value = (currentIndex.value + 1) % testimonials.value.length
@@ -133,7 +135,35 @@ const stopAutoPlay = () => {
   }
 }
 
+// Fetch testimonials from API
+const fetchTestimonials = async () => {
+  try {
+    loading.value = true
+    const response = await getTestimonials()
+    const apiTestimonials = response.data || []
+    
+    if (apiTestimonials.length > 0) {
+      // Map API data to testimonials format
+      testimonials.value = apiTestimonials.map((testimonial) => ({
+        id: testimonial.id,
+        name: testimonial.name || 'نامشخص',
+        position: testimonial.position || 'مشتری',
+        company: testimonial.company || '',
+        text: testimonial.text || testimonial.comment || '',
+        initial: testimonial.name ? testimonial.name.charAt(0) : 'ن',
+        gradient: testimonial.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }))
+    }
+  } catch (err) {
+    console.error('Error fetching testimonials:', err)
+    // Keep default testimonials as fallback
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
+  fetchTestimonials()
   startAutoPlay()
 })
 

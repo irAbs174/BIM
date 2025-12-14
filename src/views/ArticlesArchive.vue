@@ -16,8 +16,19 @@
 
     <section class="archive-content">
       <div class="container">
+        <!-- Loading state -->
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>در حال بارگیری مقالات...</p>
+        </div>
+        
+        <!-- Error state -->
+        <div v-if="error && !loading" class="error-state">
+          <p>{{ error }}</p>
+        </div>
+
         <!-- Search and Filter -->
-        <div class="archive-controls">
+        <div v-if="!loading" class="archive-controls">
           <div class="search-box">
             <span class="search-icon">🔍</span>
             <input 
@@ -73,24 +84,23 @@
             
             <div class="article-content">
               <div class="article-meta">
-                <span class="article-date">{{ article.date }}</span>
-                <span class="article-read-time">{{ article.readTime }}</span>
-                <span class="article-views">👁️ {{ article.views }}</span>
+                <span class="article-date">{{ article.created_at ? new Date(article.created_at).toLocaleDateString('fa-IR') : 'نامشخص' }}</span>
+                <span class="article-read-time">{{ article.read_time || '۵ دقیقه' }}</span>
               </div>
               
               <h3 class="article-title">{{ article.title }}</h3>
               <p class="article-excerpt">{{ article.excerpt }}</p>
               
               <div class="article-tags-preview">
-                <span v-for="tag in article.tags.slice(0, 3)" :key="tag" class="tag-mini">
+                <span v-for="tag in (article.tags || []).slice(0, 3)" :key="tag" class="tag-mini">
                   {{ tag }}
                 </span>
               </div>
               
               <div class="article-footer">
                 <div class="article-author">
-                  <div class="author-avatar">{{ article.authorAvatar }}</div>
-                  <span class="author-name">{{ article.author }}</span>
+                  <div class="author-avatar">{{ article.author_avatar || 'ن' }}</div>
+                  <span class="author-name">{{ article.author || 'نامشخص' }}</span>
                 </div>
                 <span class="read-more">
                   بیشتر
@@ -147,7 +157,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
+import { getArticles, getSlider } from '../api/services'
 import ImageSlider from '../components/ImageSlider.vue'
 import Navbar from '../components/Navbar.vue'
 import Footer from '../components/Footer.vue'
@@ -162,119 +173,11 @@ const sortBy = ref('latest')
 const currentPage = ref(1)
 const articlesPerPage = 12
 const selectedArticle = ref(null)
+const loading = ref(true)
+const error = ref(null)
 
-const categories = ['همه', 'طراحی', 'برنامه‌نویسی', 'هوش مصنوعی', 'امنیت', 'موبایل']
-
-const articles = ref([
-  {
-    id: 1,
-    title: 'آینده طراحی وب در سال ۲۰۲۵',
-    excerpt: 'بررسی جامع ترندهای جدید طراحی وب و تجربه کاربری که در سال آینده صنعت را متحول خواهند کرد.',
-    date: '۱۴ دی ۱۴۰۴',
-    readTime: '۵ دقیقه',
-    category: 'طراحی',
-    icon: '📰',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    author: 'محمد احمدی',
-    authorAvatar: 'م',
-    authorRole: 'طراح ارشد UI/UX',
-    views: '۲٫۵ هزار',
-    viewsNum: 2500,
-    featured: true,
-    tags: ['طراحی وب', 'UI/UX', 'ترند ۲۰۲۵', 'تجربه کاربری'],
-    fullContent: `<h2>مقدمه</h2><p>دنیای طراحی وب همواره در حال تحول است...</p>`
-  },
-  {
-    id: 2,
-    title: 'آموزش کامل Vue.js 3 برای مبتدیان',
-    excerpt: 'راهنمای جامع یادگیری Vue.js 3 از صفر تا صد با مثال‌های کاربردی و پروژه‌های واقعی.',
-    date: '۱۲ دی ۱۴۰۴',
-    readTime: '۱۵ دقیقه',
-    category: 'برنامه‌نویسی',
-    icon: '💻',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    author: 'سارا محمدی',
-    authorAvatar: 'س',
-    authorRole: 'توسعه‌دهنده Frontend',
-    views: '۳٫۸ هزار',
-    viewsNum: 3800,
-    featured: true,
-    tags: ['Vue.js', 'JavaScript', 'آموزش', 'Frontend'],
-    fullContent: `<h2>مقدمه به Vue.js</h2><p>Vue.js یکی از محبوب‌ترین فریمورک‌های JavaScript است...</p>`
-  },
-  {
-    id: 3,
-    title: 'بهترین شیوه‌های امنیتی در برنامه‌نویسی',
-    excerpt: 'نکات کلیدی و بهترین روش‌ها برای ایمن‌سازی کدهای خود و محافظت از داده‌های کاربران.',
-    date: '۱۰ دی ۱۴۰۴',
-    readTime: '۸ دقیقه',
-    category: 'امنیت',
-    icon: '🔒',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    author: 'علی رضایی',
-    authorAvatar: 'ع',
-    authorRole: 'متخصص امنیت',
-    views: '۱٫۹ هزار',
-    viewsNum: 1900,
-    featured: false,
-    tags: ['امنیت', 'Security', 'Best Practices', 'Cybersecurity'],
-    fullContent: `<h2>اهمیت امنیت در برنامه‌نویسی</h2><p>امنیت یکی از مهم‌ترین جنبه‌های توسعه نرم‌افزار است...</p>`
-  },
-  {
-    id: 4,
-    title: 'معرفی هوش مصنوعی ChatGPT و کاربردها',
-    excerpt: 'آشنایی با قابلیت‌های ChatGPT و نحوه استفاده از آن در پروژه‌های واقعی.',
-    date: '۸ دی ۱۴۰۴',
-    readTime: '۱۰ دقیقه',
-    category: 'هوش مصنوعی',
-    icon: '🤖',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    author: 'فاطمه کریمی',
-    authorAvatar: 'ف',
-    authorRole: 'پژوهشگر AI',
-    views: '۵٫۲ هزار',
-    viewsNum: 5200,
-    featured: true,
-    tags: ['هوش مصنوعی', 'ChatGPT', 'AI', 'Machine Learning'],
-    fullContent: `<h2>ChatGPT چیست؟</h2><p>ChatGPT یک مدل زبانی قدرتمند است که توسط OpenAI توسعه یافته...</p>`
-  },
-  {
-    id: 5,
-    title: 'طراحی اپلیکیشن موبایل: نکات کلیدی',
-    excerpt: 'راهنمای عملی طراحی رابط کاربری برای اپلیکیشن‌های موبایل با تمرکز بر تجربه کاربری.',
-    date: '۶ دی ۱۴۰۴',
-    readTime: '۷ دقیقه',
-    category: 'موبایل',
-    icon: '📱',
-    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    author: 'رضا حسینی',
-    authorAvatar: 'ر',
-    authorRole: 'طراح موبایل',
-    views: '۲٫۳ هزار',
-    viewsNum: 2300,
-    featured: false,
-    tags: ['موبایل', 'UI/UX', 'اپلیکیشن', 'طراحی'],
-    fullContent: `<h2>اصول طراحی موبایل</h2><p>طراحی رابط کاربری موبایل نیازمند دقت و توجه ویژه است...</p>`
-  },
-  {
-    id: 6,
-    title: 'React vs Vue: کدام را انتخاب کنیم؟',
-    excerpt: 'مقایسه جامع دو فریمورک محبوب React و Vue برای انتخاب بهتر در پروژه بعدی شما.',
-    date: '۴ دی ۱۴۰۴',
-    readTime: '۱۲ دقیقه',
-    category: 'برنامه‌نویسی',
-    icon: '⚛️',
-    gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-    author: 'مهدی جعفری',
-    authorAvatar: 'م',
-    authorRole: 'توسعه‌دهنده Full Stack',
-    views: '۴٫۱ هزار',
-    viewsNum: 4100,
-    featured: false,
-    tags: ['React', 'Vue', 'JavaScript', 'Frontend'],
-    fullContent: `<h2>مقدمه</h2><p>انتخاب بین React و Vue یکی از سوالات رایج توسعه‌دهندگان است...</p>`
-  }
-])
+const categories = ref(['همه'])
+const articles = ref([])
 
 const filteredArticles = computed(() => {
   let filtered = articles.value
@@ -318,6 +221,52 @@ const openArticle = (article) => {
 const closeArticle = () => {
   selectedArticle.value = null
 }
+
+// افزودن تصاویر اسلایدر به مقاله
+const enrichArticleWithSlider = async (article) => {
+  if (article.slider_id) {
+    try {
+      const sliderResponse = await getSlider(article.slider_id)
+      if (sliderResponse.data && sliderResponse.data.images) {
+        return {
+          ...article,
+          images: sliderResponse.data.images
+        }
+      }
+    } catch (err) {
+      console.error('Error loading slider:', err)
+    }
+  }
+  return article
+}
+
+// Fetch articles from API
+const fetchArticles = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const response = await getArticles({ page: 1, limit: 200 })
+    let items = response.data || []
+    
+    // افزودن تصاویر اسلایدر
+    items = await Promise.all(items.map(article => enrichArticleWithSlider(article)))
+    
+    articles.value = items
+    
+    // Update categories from API data
+    const cats = ['همه', ...new Set(articles.value.map(a => a.category))]
+    categories.value = cats
+  } catch (err) {
+    console.error('Error fetching articles:', err)
+    error.value = 'خطا در بارگیری مقالات'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchArticles()
+})
 </script>
 
 <style scoped>
@@ -879,5 +828,45 @@ const closeArticle = () => {
   .pagination-pages {
     flex-wrap: wrap;
   }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  padding: 2rem;
+  background: #fee;
+  border: 1px solid #f99;
+  border-radius: 8px;
+  color: #c33;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.dark-mode .error-state {
+  background: rgba(204, 51, 51, 0.1);
+  border-color: #c33;
+  color: #ff6666;
 }
 </style>

@@ -18,8 +18,19 @@
         </router-link>
       </div>
       
+      <!-- Loading state -->
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>در حال بارگیری مقالات...</p>
+      </div>
+      
+      <!-- Error state -->
+      <div v-if="error && !loading" class="error-state">
+        <p>{{ error }}</p>
+      </div>
+      
       <!-- Filters and Search -->
-      <div class="articles-controls">
+      <div v-if="!loading" class="articles-controls">
         <div class="search-box">
           <span class="search-icon">🔍</span>
           <input 
@@ -44,7 +55,7 @@
         </div>
         
         <div class="sort-dropdown">
-          <select v-model="sortBy" class="sort-select">
+          <select v-model="sortBy" @change="handleSortChange" class="sort-select">
             <option value="latest">جدیدترین</option>
             <option value="popular">محبوب‌ترین</option>
             <option value="trending">پربازدیدترین</option>
@@ -78,24 +89,23 @@
           
           <div class="article-content">
             <div class="article-meta">
-              <span class="article-date">{{ article.date }}</span>
-              <span class="article-read-time">{{ article.readTime }}</span>
-              <span class="article-views">👁️ {{ article.views }}</span>
+              <span class="article-date">{{ article.created_at ? new Date(article.created_at).toLocaleDateString('fa-IR') : 'نامشخص' }}</span>
+              <span class="article-read-time">{{ article.read_time || '۵ دقیقه' }}</span>
             </div>
             
             <h3 class="article-title">{{ article.title }}</h3>
             <p class="article-excerpt">{{ article.excerpt }}</p>
             
             <div class="article-tags-preview">
-              <span v-for="tag in article.tags.slice(0, 3)" :key="tag" class="tag-mini">
+              <span v-for="tag in (article.tags || []).slice(0, 3)" :key="tag" class="tag-mini">
                 {{ tag }}
               </span>
             </div>
             
             <div class="article-footer">
               <div class="article-author">
-                <div class="author-avatar">{{ article.authorAvatar }}</div>
-                <span class="author-name">{{ article.author }}</span>
+                <div class="author-avatar">{{ article.author_avatar || 'ن' }}</div>
+                <span class="author-name">{{ article.author || 'نامشخص' }}</span>
               </div>
               <a href="#" class="read-more" @click.prevent>
                 بیشتر
@@ -126,7 +136,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { getArticles, getSlider } from '../api/services'
 import ArticleDetail from './ArticleDetail.vue'
 import ImageSlider from './ImageSlider.vue'
 
@@ -137,140 +148,9 @@ const props = defineProps({
   }
 })
 
-const articles = ref([
-  {
-    id: 1,
-    title: 'آینده طراحی وب در سال ۲۰۲۵',
-    excerpt: 'بررسی جامع ترندهای جدید طراحی وب و تجربه کاربری که در سال آینده صنعت را متحول خواهند کرد.',
-    date: '۱۴ دی ۱۴۰۴',
-    readTime: '۵ دقیقه',
-    category: 'طراحی',
-    icon: '📰',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    author: 'محمد احمدی',
-    authorAvatar: 'م',
-    authorRole: 'طراح ارشد UI/UX',
-    views: '۲٫۵ هزار',
-    viewsNum: 2500,
-    featured: true,
-    tags: ['طراحی وب', 'UI/UX', 'ترند ۲۰۲۵', 'تجربه کاربری'],
-    fullContent: `
-      <h2>مقدمه</h2>
-      <p>دنیای طراحی وب همواره در حال تحول است. با پیشرفت تکنولوژی و تغییر انتظارات کاربران، طراحان و توسعه‌دهندگان باید همیشه در جریان آخرین روندها و تکنیک‌ها باشند.</p>
-      
-      <h3>۱. طراحی مینیمال و تمیز</h3>
-      <p>یکی از مهم‌ترین ترندهای سال آینده، استفاده از طراحی‌های مینیمال و تمیز است. این روش به کاربران کمک می‌کند تا بدون حواس‌پرتی به محتوای اصلی توجه کنند.</p>
-      
-      <h3>۲. انیمیشن‌های روان</h3>
-      <p>استفاده از انیمیشن‌های ظریف و هدفمند می‌تواند تجربه کاربری را بهبود بخشد. انیمیشن‌ها باید معنادار باشند و به راهنمایی کاربر کمک کنند.</p>
-      
-      <h3>۳. تم تاریک</h3>
-      <p>حالت تاریک (Dark Mode) دیگر یک انتخاب اختیاری نیست، بلکه یک الزام است. کاربران انتظار دارند که بتوانند بین حالت روشن و تاریک جابجا شوند.</p>
-      
-      <h3>۴. طراحی ریسپانسیو پیشرفته</h3>
-      <p>با تنوع دستگاه‌های موجود، طراحی ریسپانسیو باید فراتر از تنظیمات ساده برود و تجربه‌ای مناسب برای هر دستگاه فراهم کند.</p>
-      
-      <h2>نتیجه‌گیری</h2>
-      <p>آینده طراحی وب متعلق به کسانی است که می‌توانند تکنولوژی را با خلاقیت ترکیب کنند و تجربه‌های بی‌نظیری برای کاربران خلق کنند.</p>
-    `
-  },
-  {
-    id: 2,
-    title: 'بهینه‌سازی عملکرد وبسایت',
-    excerpt: 'راهنمای کامل برای افزایش سرعت و بهینه‌سازی وبسایت‌های مدرن با تکنیک‌های پیشرفته.',
-    date: '۱۲ دی ۱۴۰۴',
-    readTime: '۸ دقیقه',
-    category: 'توسعه',
-    icon: '⚡',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    author: 'سارا رضایی',
-    authorAvatar: 'س',
-    authorRole: 'توسعه‌دهنده فرانت‌اند',
-    views: '۳٫۲ هزار',
-    viewsNum: 3200,
-    featured: false,
-    tags: ['عملکرد', 'بهینه‌سازی', 'سرعت', 'SEO'],
-    fullContent: `
-      <h2>چرا عملکرد مهم است؟</h2>
-      <p>سرعت وبسایت یکی از مهم‌ترین عوامل در تجربه کاربری و رتبه‌بندی موتورهای جستجو است.</p>
-    `
-  },
-  {
-    id: 3,
-    title: 'طراحی ریسپانسیو حرفه‌ای',
-    excerpt: 'اصول و تکنیک‌های کلیدی برای ساخت وبسایت‌های سازگار با تمام دستگاه‌ها و اندازه صفحه‌ها.',
-    date: '۱۰ دی ۱۴۰۴',
-    readTime: '۶ دقیقه',
-    category: 'موبایل',
-    icon: '📱',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    author: 'علی کریمی',
-    authorAvatar: 'ع',
-    authorRole: 'توسعه‌دهنده فول‌استک',
-    views: '۱٫۸ هزار',
-    viewsNum: 1800,
-    featured: false,
-    tags: ['ریسپانسیو', 'موبایل', 'CSS', 'Media Queries'],
-    fullContent: `
-      <h2>اهمیت طراحی ریسپانسیو</h2>
-      <p>با افزایش استفاده از دستگاه‌های موبایل، طراحی ریسپانسیو دیگر یک انتخاب نیست بلکه یک ضرورت است.</p>
-    `
-  },
-  {
-    id: 4,
-    title: 'معماری مایکروسرویس‌ها',
-    excerpt: 'راهنمای جامع برای طراحی و پیاده‌سازی معماری مایکروسرویس در پروژه‌های بزرگ و مقیاس‌پذیر.',
-    date: '۸ دی ۱۴۰۴',
-    readTime: '۱۲ دقیقه',
-    category: 'توسعه',
-    icon: '🏗️',
-    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    author: 'رضا محمدی',
-    authorAvatar: 'ر',
-    authorRole: 'معمار نرم‌افزار',
-    views: '۴٫۱ هزار',
-    viewsNum: 4100,
-    featured: true,
-    tags: ['معماری', 'مایکروسرویس', 'Backend', 'Docker'],
-    fullContent: `<h2>مقدمه</h2><p>معماری مایکروسرویس یک رویکرد نوین برای توسعه نرم‌افزار است.</p>`
-  },
-  {
-    id: 5,
-    title: 'امنیت در برنامه‌های وب',
-    excerpt: 'بررسی تهدیدات رایج امنیتی و روش‌های محافظت از برنامه‌های وب در برابر حملات سایبری.',
-    date: '۶ دی ۱۴۰۴',
-    readTime: '۱۰ دقیقه',
-    category: 'امنیت',
-    icon: '🔒',
-    gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-    author: 'فاطمه کاظمی',
-    authorAvatar: 'ف',
-    authorRole: 'متخصص امنیت',
-    views: '۲٫۹ هزار',
-    viewsNum: 2900,
-    featured: false,
-    tags: ['امنیت', 'OWASP', 'حملات', 'محافظت'],
-    fullContent: `<h2>امنیت اولویت اول است</h2><p>توجه به امنیت برنامه‌های وب از اهمیت ویژه‌ای برخوردار است.</p>`
-  },
-  {
-    id: 6,
-    title: 'React vs Vue: کدام یک را انتخاب کنیم؟',
-    excerpt: 'مقایسه جامع دو فریم‌ورک محبوب React و Vue برای انتخاب بهترین گزینه در پروژه‌های مختلف.',
-    date: '۴ دی ۱۴۰۴',
-    readTime: '۷ دقیقه',
-    category: 'طراحی',
-    icon: '⚛️',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    author: 'امیر حسینی',
-    authorAvatar: 'ا',
-    authorRole: 'توسعه‌دهنده فرانت‌اند',
-    views: '۵٫۳ هزار',
-    viewsNum: 5300,
-    featured: true,
-    tags: ['React', 'Vue', 'فریم‌ورک', 'مقایسه'],
-    fullContent: `<h2>مقدمه</h2><p>انتخاب بین React و Vue یکی از سوالات رایج است.</p>`
-  }
-])
+const articles = ref([])
+const loading = ref(true)
+const error = ref(null)
 
 const selectedArticle = ref(null)
 const searchQuery = ref('')
@@ -278,6 +158,54 @@ const selectedCategory = ref('همه')
 const sortBy = ref('latest')
 const currentPage = ref(1)
 const articlesPerPage = 6
+const totalArticles = ref(0)
+
+// افزودن تصاویر اسلایدر به مقاله
+const enrichArticleWithSlider = async (article) => {
+  if (article.slider_id) {
+    try {
+      const sliderResponse = await getSlider(article.slider_id)
+      if (sliderResponse.data && sliderResponse.data.images) {
+        return {
+          ...article,
+          images: sliderResponse.data.images
+        }
+      }
+    } catch (err) {
+      console.error('Error loading slider:', err)
+    }
+  }
+  return article
+}
+
+// Fetch articles from API
+const fetchArticles = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const response = await getArticles({ 
+      page: 1, 
+      limit: 100,
+      sort: sortBy.value === 'popular' ? 'popular' : 'latest'
+    })
+    let items = response.data || []
+    
+    // افزودن تصاویر اسلایدر برای هر مقاله
+    items = await Promise.all(items.map(article => enrichArticleWithSlider(article)))
+    
+    articles.value = items
+    totalArticles.value = response.total || 0
+  } catch (err) {
+    console.error('Error fetching articles:', err)
+    error.value = 'خطا در بارگیری مقالات'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchArticles()
+})
 
 const categories = computed(() => {
   const cats = ['همه', ...new Set(articles.value.map(a => a.category))]
@@ -296,14 +224,8 @@ const filteredArticles = computed(() => {
     filtered = filtered.filter(a => 
       a.title.toLowerCase().includes(query) ||
       a.excerpt.toLowerCase().includes(query) ||
-      a.tags.some(tag => tag.toLowerCase().includes(query))
+      (a.tags && a.tags.some(tag => tag.toLowerCase().includes(query)))
     )
-  }
-  
-  if (sortBy.value === 'popular') {
-    filtered = [...filtered].sort((a, b) => b.viewsNum - a.viewsNum)
-  } else {
-    filtered = [...filtered].sort((a, b) => b.id - a.id)
   }
   
   return filtered
@@ -331,6 +253,13 @@ const openArticle = (article) => {
 
 const closeArticle = () => {
   selectedArticle.value = null
+}
+
+// Handle sort change
+const handleSortChange = (newSort) => {
+  sortBy.value = newSort
+  currentPage.value = 1
+  fetchArticles()
 }
 </script>
 
@@ -1020,5 +949,45 @@ const closeArticle = () => {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  padding: 2rem;
+  background: #fee;
+  border: 1px solid #f99;
+  border-radius: 8px;
+  color: #c33;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.dark-mode .error-state {
+  background: rgba(204, 51, 51, 0.1);
+  border-color: #c33;
+  color: #ff6666;
 }
 </style>

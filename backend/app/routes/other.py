@@ -98,6 +98,21 @@ def create_certificate(
 
 # ============= STATISTICS =============
 
+@router.get("/sliders/{slider_id}", response_model=dict)
+def get_slider(slider_id: int, db: Session = Depends(get_db)):
+    """دریافت یک اسلایدر با تمام تصاویر آن"""
+    slider = db.query(models.Slider).filter(models.Slider.id == slider_id).first()
+    
+    if not slider:
+        return {
+            "data": None,
+            "message": "اسلایدر یافت نشد"
+        }
+    
+    slider_data = schemas.Slider.from_orm(slider)
+    return {"data": slider_data}
+
+
 @router.get("/statistics", response_model=dict)
 def get_statistics(db: Session = Depends(get_db)):
     """دریافت آمار سایت"""

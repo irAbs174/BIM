@@ -3,11 +3,40 @@ import { mockArticles } from '../data/mockArticles'
 import { mockGalleryItems } from '../data/mockGallery'
 import { mockTestimonials, mockCertificates, mockStatistics } from '../data/mockData'
 
-// استفاده از mock data یا API واقعی بر اساس environment variable
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true'
+// استفاده از API واقعی به طور پیش‌فرض
+// mock data فقط به عنوان fallback در صورت خرابی API
+const USE_MOCK_DATA = false
 
 // Helper function برای simulating API delay در mock mode
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+// Helper function برای fallback به mock data
+const useMockDataFallback = async (mockDataFn) => {
+  try {
+    return await mockDataFn()
+  } catch (error) {
+    console.warn('API error, using mock data:', error)
+    return null
+  }
+}
+
+// ============= SLIDERS API =============
+
+/**
+ * دریافت یک اسلایدر با تمام تصاویر آن
+ * @param {Number} sliderId - شناسه اسلایدر
+ * @returns {Promise<Object>} اسلایدر
+ */
+export const getSlider = async (sliderId) => {
+  try {
+    if (!sliderId) return { data: null }
+    const response = await apiClient.get(`/api/sliders/${sliderId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching slider:', error)
+    return { data: null }
+  }
+}
 
 // ============= ARTICLES API =============
 
@@ -17,45 +46,40 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
  * @returns {Promise<Array>} لیست مقالات
  */
 export const getArticles = async (params = {}) => {
-  if (USE_MOCK_DATA) {
-    await delay(500) // شبیه‌سازی تاخیر شبکه
-    let filtered = [...mockArticles]
-    
-    // فیلتر بر اساس دسته‌بندی
-    if (params.category && params.category !== 'همه') {
-      filtered = filtered.filter(article => article.category === params.category)
+  try {
+    // استفاده از API واقعی
+    const response = await apiClient.get('/api/articles', { params })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching articles:', error)
+    if (USE_MOCK_DATA) {
+      await delay(500)
+      let filtered = [...mockArticles]
+      if (params.category && params.category !== 'همه') {
+        filtered = filtered.filter(article => article.category === params.category)
+      }
+      if (params.search) {
+        const searchLower = params.search.toLowerCase()
+        filtered = filtered.filter(article => 
+          article.title.toLowerCase().includes(searchLower) ||
+          article.excerpt.toLowerCase().includes(searchLower) ||
+          article.tags.some(tag => tag.toLowerCase().includes(searchLower))
+        )
+      }
+      if (params.sort === 'popular') {
+        filtered.sort((a, b) => b.viewsNum - a.viewsNum)
+      } else if (params.sort === 'trending') {
+        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+      }
+      if (params.page && params.limit) {
+        const start = (params.page - 1) * params.limit
+        const end = start + params.limit
+        filtered = filtered.slice(start, end)
+      }
+      return { data: filtered, total: mockArticles.length }
     }
-    
-    // جستجو
-    if (params.search) {
-      const searchLower = params.search.toLowerCase()
-      filtered = filtered.filter(article => 
-        article.title.toLowerCase().includes(searchLower) ||
-        article.excerpt.toLowerCase().includes(searchLower) ||
-        article.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      )
-    }
-    
-    // مرتب‌سازی
-    if (params.sort === 'popular') {
-      filtered.sort((a, b) => b.viewsNum - a.viewsNum)
-    } else if (params.sort === 'trending') {
-      filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-    }
-    
-    // Pagination
-    if (params.page && params.limit) {
-      const start = (params.page - 1) * params.limit
-      const end = start + params.limit
-      filtered = filtered.slice(start, end)
-    }
-    
-    return { data: filtered, total: mockArticles.length }
+    throw error
   }
-  
-  // استفاده از API واقعی
-  const response = await apiClient.get('/api/articles', { params })
-  return response.data
 }
 
 /**
@@ -64,15 +88,19 @@ export const getArticles = async (params = {}) => {
  * @returns {Promise<Object>} مقاله
  */
 export const getArticleById = async (id) => {
-  if (USE_MOCK_DATA) {
-    await delay(300)
-    const article = mockArticles.find(a => a.id === parseInt(id))
-    if (!article) throw new Error('مقاله یافت نشد')
-    return { data: article }
+  try {
+    const response = await apiClient.get(`/api/articles/${id}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching article:', error)
+    if (USE_MOCK_DATA) {
+      await delay(300)
+      const article = mockArticles.find(a => a.id === parseInt(id))
+      if (!article) throw new Error('مقاله یافت نشد')
+      return { data: article }
+    }
+    throw error
   }
-  
-  const response = await apiClient.get(`/api/articles/${id}`)
-  return response.data
 }
 
 /**
@@ -114,28 +142,29 @@ export const deleteArticle = async (id) => {
  * @returns {Promise<Array>} لیست آیتم‌ها
  */
 export const getGalleryItems = async (params = {}) => {
-  if (USE_MOCK_DATA) {
-    await delay(500)
-    let filtered = [...mockGalleryItems]
-    
-    if (params.category && params.category !== 'همه') {
-      filtered = filtered.filter(item => item.category === params.category)
+  try {
+    const response = await apiClient.get('/api/gallery', { params })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching gallery items:', error)
+    if (USE_MOCK_DATA) {
+      await delay(500)
+      let filtered = [...mockGalleryItems]
+      if (params.category && params.category !== 'همه') {
+        filtered = filtered.filter(item => item.category === params.category)
+      }
+      if (params.search) {
+        const searchLower = params.search.toLowerCase()
+        filtered = filtered.filter(item =>
+          item.title.toLowerCase().includes(searchLower) ||
+          item.description.toLowerCase().includes(searchLower) ||
+          item.technologies.some(tech => tech.toLowerCase().includes(searchLower))
+        )
+      }
+      return { data: filtered, total: mockGalleryItems.length }
     }
-    
-    if (params.search) {
-      const searchLower = params.search.toLowerCase()
-      filtered = filtered.filter(item =>
-        item.title.toLowerCase().includes(searchLower) ||
-        item.description.toLowerCase().includes(searchLower) ||
-        item.technologies.some(tech => tech.toLowerCase().includes(searchLower))
-      )
-    }
-    
-    return { data: filtered, total: mockGalleryItems.length }
+    throw error
   }
-  
-  const response = await apiClient.get('/api/gallery', { params })
-  return response.data
 }
 
 /**
@@ -144,15 +173,19 @@ export const getGalleryItems = async (params = {}) => {
  * @returns {Promise<Object>} آیتم گالری
  */
 export const getGalleryItemById = async (id) => {
-  if (USE_MOCK_DATA) {
-    await delay(300)
-    const item = mockGalleryItems.find(i => i.id === parseInt(id))
-    if (!item) throw new Error('آیتم یافت نشد')
-    return { data: item }
+  try {
+    const response = await apiClient.get(`/api/gallery/${id}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching gallery item:', error)
+    if (USE_MOCK_DATA) {
+      await delay(300)
+      const item = mockGalleryItems.find(i => i.id === parseInt(id))
+      if (!item) throw new Error('آیتم یافت نشد')
+      return { data: item }
+    }
+    throw error
   }
-  
-  const response = await apiClient.get(`/api/gallery/${id}`)
-  return response.data
 }
 
 // ============= TESTIMONIALS API =============
@@ -162,13 +195,17 @@ export const getGalleryItemById = async (id) => {
  * @returns {Promise<Array>} لیست نظرات
  */
 export const getTestimonials = async () => {
-  if (USE_MOCK_DATA) {
-    await delay(400)
-    return { data: mockTestimonials }
+  try {
+    const response = await apiClient.get('/api/testimonials')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching testimonials:', error)
+    if (USE_MOCK_DATA) {
+      await delay(400)
+      return { data: mockTestimonials }
+    }
+    throw error
   }
-  
-  const response = await apiClient.get('/api/testimonials')
-  return response.data
 }
 
 /**
@@ -188,13 +225,17 @@ export const createTestimonial = async (testimonialData) => {
  * @returns {Promise<Array>} لیست گواهینامه‌ها
  */
 export const getCertificates = async () => {
-  if (USE_MOCK_DATA) {
-    await delay(300)
-    return { data: mockCertificates }
+  try {
+    const response = await apiClient.get('/api/certificates')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching certificates:', error)
+    if (USE_MOCK_DATA) {
+      await delay(300)
+      return { data: mockCertificates }
+    }
+    throw error
   }
-  
-  const response = await apiClient.get('/api/certificates')
-  return response.data
 }
 
 // ============= STATISTICS API =============
@@ -204,13 +245,17 @@ export const getCertificates = async () => {
  * @returns {Promise<Array>} لیست آمارها
  */
 export const getStatistics = async () => {
-  if (USE_MOCK_DATA) {
-    await delay(300)
-    return { data: mockStatistics }
+  try {
+    const response = await apiClient.get('/api/statistics')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching statistics:', error)
+    if (USE_MOCK_DATA) {
+      await delay(300)
+      return { data: mockStatistics }
+    }
+    throw error
   }
-  
-  const response = await apiClient.get('/api/statistics')
-  return response.data
 }
 
 // ============= CONTACT API =============

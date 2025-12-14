@@ -6,7 +6,14 @@
         بازگشت
       </button>
     
-    <div class="article-header" :style="{ background: article.gradient }">
+    <!-- Image Slider -->
+    <ImageSlider
+      v-if="article.images && article.images.length > 0"
+      :item="article"
+      :icon="article.icon"
+    />
+    
+    <div v-else class="article-header" :style="{ background: article.gradient }">
       <div class="article-category-badge">{{ article.category }}</div>
       <div class="article-icon-large">{{ article.icon }}</div>
     </div>
@@ -15,7 +22,6 @@
       <div class="article-meta">
         <span class="meta-item">📅 {{ article.date }}</span>
         <span class="meta-item">⏱️ {{ article.readTime }}</span>
-        <span class="meta-item">👁️ {{ article.views }} بازدید</span>
       </div>
       
       <h1 class="article-title">{{ article.title }}</h1>
@@ -55,6 +61,7 @@
 
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
+import ImageSlider from './ImageSlider.vue'
 
 defineProps({
   article: {

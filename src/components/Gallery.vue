@@ -10,8 +10,19 @@
         </router-link>
       </div>
       
+      <!-- Loading state -->
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>در حال بارگیری پروژه‌ها...</p>
+      </div>
+      
+      <!-- Error state -->
+      <div v-if="error && !loading" class="error-state">
+        <p>{{ error }}</p>
+      </div>
+
       <!-- Search and Filter -->
-      <div class="gallery-controls">
+      <div v-if="!loading" class="gallery-controls">
         <div class="search-box">
           <span class="search-icon">🔍</span>
           <input 
@@ -54,15 +65,13 @@
               <span class="view-btn">مشاهده پروژه</span>
             </div>
           </div>
-          <div class="card-badge" :style="{ background: item.categoryColor }">{{ item.category }}</div>
-          <div class="card-stats">
-            <span>❤️ {{ item.likes }}</span>
-          </div>
+          <div class="card-badge" :style="{ background: item.category_color || '#667eea' }">{{ item.category }}</div>
+
           <div class="card-body">
             <h3 class="card-title">{{ item.title }}</h3>
             <p class="card-description">{{ item.description }}</p>
             <div class="card-tags">
-              <span v-for="tag in item.tags.slice(0, 3)" :key="tag" class="tag">{{ tag }}</span>
+              <span v-for="tech in (item.technologies || []).slice(0, 3)" :key="tech" class="tag">{{ tech }}</span>
             </div>
           </div>
         </div>
@@ -84,36 +93,24 @@
             <button class="modal-close" @click="closeModal">✕</button>
             
             <!-- Modal Gallery -->
-            <div class="modal-gallery">
-              <div class="modal-main-image" :style="{ background: selectedItem.gradient }">
-                <div class="modal-icon-large">{{ selectedItem.icon }}</div>
-              </div>
-              <div class="modal-thumbnails">
-                <div 
-                  v-for="(img, index) in selectedItem.images" 
-                  :key="index"
-                  class="thumbnail"
-                  :style="{ background: img.gradient }"
-                >
-                  {{ img.icon }}
-                </div>
-              </div>
-            </div>
+            <ImageSlider
+              :item="selectedItem"
+              :icon="selectedItem.icon"
+              class="modal-gallery"
+            />
             
             <!-- Modal Info -->
             <div class="modal-info">
               <div class="modal-header-row">
                 <h2 class="modal-title">{{ selectedItem.title }}</h2>
-                <div class="modal-category-badge" :style="{ background: selectedItem.categoryColor }">
-                  {{ selectedItem.category }}
-                </div>
+<div class="modal-category-badge" :style="{ background: selectedItem.category_color || '#667eea' }">
+                {{ selectedItem.category }}
               </div>
-              
-              <div class="modal-stats-row">
-                <span class="stat-item">👁️ {{ selectedItem.views }} بازدید</span>
-                <span class="stat-item">❤️ {{ selectedItem.likes }} لایک</span>
-                <span class="stat-item">📅 {{ selectedItem.date }}</span>
-              </div>
+            </div>
+            
+            <div class="modal-stats-row">
+              <span class="stat-item">� {{ selectedItem.date || selectedItem.created_at }}</span>
+            </div>
               
               <p class="modal-description">{{ selectedItem.description }}</p>
               <p class="modal-details">{{ selectedItem.details }}</p>
@@ -125,15 +122,11 @@
                 </ul>
               </div>
               
-              <div class="modal-tech">
+              <div v-if="selectedItem.technologies && selectedItem.technologies.length > 0" class="modal-tech">
                 <h3>تکنولوژی‌ها</h3>
                 <div class="tech-stack">
                   <span v-for="tech in selectedItem.technologies" :key="tech" class="tech-badge">{{ tech }}</span>
                 </div>
-              </div>
-              
-              <div class="modal-tags">
-                <span v-for="tag in selectedItem.tags" :key="tag" class="tag-large">{{ tag }}</span>
               </div>
               
               <div class="modal-actions">
@@ -167,7 +160,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { getGalleryItems, getSlider } from '../api/services'
 import ImageSlider from './ImageSlider.vue'
 
 const props = defineProps({
@@ -435,6 +429,50 @@ const galleryItems = ref([
 const selectedItem = ref(null)
 const searchQuery = ref('')
 const selectedCategory = ref('همه')
+const loading = ref(true)
+const error = ref(null)
+
+// Fetch gallery items from API
+// افزودن تصاویر اسلایدر به آیتم
+const enrichItemWithSlider = async (item) => {
+  if (item.slider_id) {
+    try {
+      const sliderResponse = await getSlider(item.slider_id)
+      if (sliderResponse.data && sliderResponse.data.images) {
+        return {
+          ...item,
+          images: sliderResponse.data.images
+        }
+      }
+    } catch (err) {
+      console.error('Error loading slider:', err)
+    }
+  }
+  return item
+}
+
+const fetchGalleryItems = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const response = await getGalleryItems({ page: 1, limit: 100 })
+    let items = response.data || galleryItems.value
+    
+    // افزودن تصاویر اسلایدر برای هر آیتم
+    items = await Promise.all(items.map(item => enrichItemWithSlider(item)))
+    
+    galleryItems.value = items
+  } catch (err) {
+    console.error('Error fetching gallery items:', err)
+    error.value = 'خطا در بارگیری پروژه‌ها'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchGalleryItems()
+})
 
 const categories = computed(() => {
   const cats = ['همه', ...new Set(galleryItems.value.map(item => item.category))]
@@ -1333,5 +1371,45 @@ const previousItem = () => {
     flex-direction: column;
     gap: 0.75rem;
   }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  padding: 2rem;
+  background: #fee;
+  border: 1px solid #f99;
+  border-radius: 8px;
+  color: #c33;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.dark-mode .error-state {
+  background: rgba(204, 51, 51, 0.1);
+  border-color: #c33;
+  color: #ff6666;
 }
 </style>

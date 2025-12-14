@@ -440,41 +440,57 @@ onMounted(() => {
 
 .images-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
 }
 
 .image-item {
   position: relative;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .image-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
+}
+
+.image-item:hover img {
+  transform: scale(1.05);
 }
 
 .btn-remove {
   position: absolute;
-  top: -1px;
-  right: -1px;
-  background: #e53e3e;
+  top: 4px;
+  right: 4px;
+  background: rgba(229, 62, 62, 0.95);
   color: white;
   border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.2s;
   opacity: 0;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .image-item:hover .btn-remove {
@@ -482,7 +498,8 @@ onMounted(() => {
 }
 
 .btn-remove:hover {
-  background: #c53030;
+  background: rgba(197, 48, 48, 1);
+  transform: scale(1.1);
 }
 
 .form-actions {
@@ -545,13 +562,14 @@ onMounted(() => {
 
 .card-preview {
   width: 100%;
-  height: 160px;
-  background: linear-gradient(135deg, #f7fafc 0%, #e2e8f0 100%);
+  height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
   overflow: hidden;
   position: relative;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .preview-images {
@@ -567,18 +585,27 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+  filter: brightness(1);
+}
+
+.slider-card:hover .preview-img {
+  filter: brightness(1.1);
+  transform: scale(1.02);
 }
 
 .more-count {
   position: absolute;
   bottom: 0.5rem;
   right: 0.5rem;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .no-preview {

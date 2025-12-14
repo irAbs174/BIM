@@ -1,29 +1,36 @@
 <template>
   <div class="admin-layout">
-    <aside class="admin-sidebar">
+    <button class="hamburger-menu" @click="sidebarOpen = !sidebarOpen" :class="{ active: sidebarOpen }">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    
+    <aside class="admin-sidebar" :class="{ open: sidebarOpen }">
       <div class="sidebar-header">
         <h2>🎛️ مدیریت</h2>
+        <button class="close-sidebar" @click="sidebarOpen = false">✕</button>
       </div>
       <nav class="sidebar-nav">
-        <router-link to="/admin/dashboard" class="nav-item" :class="{ active: isActive('dashboard') }">
+        <router-link to="/admin/dashboard" class="nav-item" :class="{ active: isActive('dashboard') }" @click="closeSidebar">
           📊 داشبورد
         </router-link>
-        <router-link to="/admin/articles" class="nav-item" :class="{ active: isActive('articles') }">
+        <router-link to="/admin/articles" class="nav-item" :class="{ active: isActive('articles') }" @click="closeSidebar">
           📝 مقالات
         </router-link>
-        <router-link to="/admin/gallery" class="nav-item" :class="{ active: isActive('gallery') }">
+        <router-link to="/admin/gallery" class="nav-item" :class="{ active: isActive('gallery') }" @click="closeSidebar">
           🎨 گالری
         </router-link>
-        <router-link to="/admin/testimonials" class="nav-item" :class="{ active: isActive('testimonials') }">
+        <router-link to="/admin/testimonials" class="nav-item" :class="{ active: isActive('testimonials') }" @click="closeSidebar">
           ⭐ نظرات
         </router-link>
-        <router-link to="/admin/contacts" class="nav-item" :class="{ active: isActive('contacts') }">
+        <router-link to="/admin/contacts" class="nav-item" :class="{ active: isActive('contacts') }" @click="closeSidebar">
           📧 پیام‌ها
         </router-link>
-        <router-link to="/admin/sliders" class="nav-item" :class="{ active: isActive('sliders') }">
+        <router-link to="/admin/sliders" class="nav-item" :class="{ active: isActive('sliders') }" @click="closeSidebar">
           🎬 اسلایدرها
         </router-link>
-        <router-link to="/admin/certificates" class="nav-item" :class="{ active: isActive('certificates') }">
+        <router-link to="/admin/certificates" class="nav-item" :class="{ active: isActive('certificates') }" @click="closeSidebar">
           📜 گواهینامه‌ها
         </router-link>
       </nav>
@@ -56,6 +63,7 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 const currentUser = ref(null)
+const sidebarOpen = ref(false)
 
 const pageTitle = computed(() => {
   const titles = {
@@ -80,6 +88,10 @@ const handleLogout = () => {
   router.push('/admin/login')
 }
 
+const closeSidebar = () => {
+  sidebarOpen.value = false
+}
+
 onMounted(() => {
   const user = localStorage.getItem('admin_user')
   if (user) {
@@ -89,6 +101,52 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.hamburger-menu {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hamburger-menu span {
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+.close-sidebar {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: auto;
+}
+
 .admin-layout {
   display: flex;
   height: 100vh;
@@ -242,40 +300,65 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .hamburger-menu {
+    display: flex;
+  }
+
   .admin-layout {
     flex-direction: column;
   }
 
   .admin-sidebar {
-    width: 100%;
-    height: auto;
-    max-height: auto;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 80%;
+    max-width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .close-sidebar {
+    display: block;
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
+    flex-direction: column;
+    overflow-x: visible;
     padding: 0.5rem 0;
   }
 
   .nav-item {
-    white-space: nowrap;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-    padding: 0.75rem 1rem;
+    border-left: 4px solid transparent;
+    border-bottom: none;
+    padding: 0.875rem 1.5rem;
+    white-space: normal;
   }
 
   .nav-item.active {
-    border-left: none;
-    border-bottom: 3px solid white;
-    box-shadow: none;
+    border-left: 4px solid white;
+    border-bottom: none;
+    box-shadow: inset -4px 0 8px rgba(0, 0, 0, 0.1);
   }
 
   .admin-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+    padding-right: 1.5rem;
   }
 
   .admin-header h1 {
@@ -290,11 +373,51 @@ onMounted(() => {
   .admin-content {
     padding: 1rem;
   }
+
+  /* Overlay for sidebar */
+  .admin-sidebar::before {
+    content: '';
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .admin-sidebar.open::before {
+    opacity: 1;
+    pointer-events: all;
+  }
 }
 
 @media (max-width: 480px) {
+  .hamburger-menu {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .admin-header {
+    padding: 1rem 1.5rem 1rem 4rem;
+  }
+
   .admin-header h1 {
     font-size: 1rem;
+  }
+
+  .admin-user {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .user-logout {
+    width: 100%;
+    text-align: center;
   }
 
   .admin-content {
@@ -302,8 +425,8 @@ onMounted(() => {
   }
 
   .nav-item {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
   }
 
   .sidebar-header h2 {

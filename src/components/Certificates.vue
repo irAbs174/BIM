@@ -35,7 +35,13 @@
           <div class="cert-modal-content" @click.stop>
             <button class="modal-close" @click="closeCertificate">✕</button>
             
-            <div class="cert-modal-image" :style="{ background: selectedCert.gradient }">
+            <ImageSlider
+              v-if="selectedCert.images && selectedCert.images.length > 0"
+              :item="selectedCert"
+              :icon="selectedCert.icon"
+              class="cert-modal-image"
+            />
+            <div v-else class="cert-modal-image" :style="{ background: selectedCert.gradient }">
               <span class="cert-modal-icon">{{ selectedCert.icon }}</span>
             </div>
             
@@ -67,7 +73,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getCertificates, getSlider } from '../api/services'
+import ImageSlider from './ImageSlider.vue'
 
 const certificates = ref([
   {
@@ -151,6 +159,7 @@ const certificates = ref([
 ])
 
 const selectedCert = ref(null)
+const loading = ref(true)
 
 const openCertificate = (cert) => {
   selectedCert.value = cert
@@ -161,6 +170,65 @@ const closeCertificate = () => {
   selectedCert.value = null
   document.body.style.overflow = ''
 }
+
+// افزودن تصاویر اسلایدر به گواهینامه
+const enrichCertificateWithSlider = async (cert) => {
+  if (cert.slider_id) {
+    try {
+      const sliderResponse = await getSlider(cert.slider_id)
+      if (sliderResponse.data && sliderResponse.data.images) {
+        return {
+          ...cert,
+          images: sliderResponse.data.images
+        }
+      }
+    } catch (err) {
+      console.error('Error loading slider:', err)
+    }
+  }
+  return cert
+}
+
+// Fetch certificates from API
+const fetchCertificates = async () => {
+  try {
+    loading.value = true
+    const response = await getCertificates()
+    let apiCerts = response.data || []
+    
+    if (apiCerts.length > 0) {
+      // Map API data to certificates format
+      let mappedCerts = apiCerts.map((cert) => ({
+        id: cert.id,
+        title: cert.title || 'گواهینامه',
+        issuer: cert.issuer || 'سازمان',
+        date: cert.date || '',
+        icon: cert.icon || '🏆',
+        gradient: cert.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        type: cert.type || 'standard',
+        typeLabel: cert.type_label || 'گواهینامه',
+        description: cert.description || '',
+        certNumber: `CERT-${cert.id}`,
+        validity: '۳ سال',
+        slider_id: cert.slider_id
+      }))
+      
+      // افزودن تصاویر اسلایدر
+      mappedCerts = await Promise.all(mappedCerts.map(cert => enrichCertificateWithSlider(cert)))
+      
+      certificates.value = mappedCerts
+    }
+  } catch (err) {
+    console.error('Error fetching certificates:', err)
+    // Keep default certificates as fallback
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCertificates()
+})
 </script>
 
 <style scoped>
