@@ -13,7 +13,7 @@ class ArticleBase(BaseModel):
     icon: str = "📝"
     gradient: Optional[str] = None
     image: Optional[str] = None  # تصویر شاخص
-    images: Optional[List[str]] = None  # اسلایدر تصاویر
+    slider_id: Optional[int] = None  # اسلایدر (بجای images)
     author: str
     author_avatar: Optional[str] = None
     author_role: Optional[str] = None
@@ -34,7 +34,7 @@ class ArticleUpdate(BaseModel):
     icon: Optional[str] = None
     gradient: Optional[str] = None
     image: Optional[str] = None
-    images: Optional[List[str]] = None
+    slider_id: Optional[int] = None
     author: Optional[str] = None
     author_avatar: Optional[str] = None
     author_role: Optional[str] = None
@@ -61,7 +61,7 @@ class GalleryItemBase(BaseModel):
     icon: str = "🎨"
     gradient: Optional[str] = None
     image: Optional[str] = None  # تصویر شاخص
-    images: Optional[List[str]] = None  # اسلایدر تصاویر
+    slider_id: Optional[int] = None  # اسلایدر (بجای images)
     category: str
     category_color: Optional[str] = None
     date: Optional[str] = None
@@ -79,7 +79,7 @@ class GalleryItemUpdate(BaseModel):
     icon: Optional[str] = None
     gradient: Optional[str] = None
     image: Optional[str] = None
-    images: Optional[List[str]] = None
+    slider_id: Optional[int] = None
     category: Optional[str] = None
     category_color: Optional[str] = None
     date: Optional[str] = None

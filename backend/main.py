@@ -45,6 +45,11 @@ async def lifespan(app: FastAPI):
     
     print(f"✅ Server running on {settings.HOST}:{settings.PORT}")
     
+    # Log BACKEND_URL for debugging
+    import os
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    print(f"🌐 BACKEND_URL: {backend_url}")
+    
     yield
     
     # Shutdown
@@ -91,6 +96,17 @@ def root():
         "version": settings.VERSION,
         "docs": "/docs",
         "redoc": "/redoc"
+    }
+
+
+@app.get("/api/config")
+def get_config():
+    """Get backend configuration"""
+    import os
+    return {
+        "backend_url": os.getenv("BACKEND_URL", "http://localhost:8000"),
+        "uploads_enabled": True,
+        "max_file_size": 5 * 1024 * 1024
     }
 
 

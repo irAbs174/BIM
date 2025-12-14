@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
@@ -34,7 +34,7 @@ def validate_file(file: UploadFile):
     return file_ext
 
 
-def save_upload_file(upload_file: UploadFile) -> str:
+def save_upload_file(upload_file: UploadFile, request=None) -> str:
     """ذخیره فایل و برگرداندن URL"""
     # اعتبارسنجی
     file_ext = validate_file(upload_file)
@@ -54,18 +54,39 @@ def save_upload_file(upload_file: UploadFile) -> str:
         )
     
     # برگرداندن URL مطلق
-    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    backend_url = None
+    
+    # ابتدا بررسی کنید BACKEND_URL environment variable (دقیق‌ترین روش)
+    backend_url = os.getenv("BACKEND_URL")
+    
+    # اگر BACKEND_URL تعیین نشده است و request موجود است، از headers استفاده کنید
+    if not backend_url and request:
+        # از X-Forwarded-Proto و X-Forwarded-Host استفاده کنید (برای proxy)
+        forwarded_proto = request.headers.get("X-Forwarded-Proto", request.url.scheme)
+        forwarded_host = request.headers.get("X-Forwarded-Host", request.url.netloc)
+        
+        # اگر Host localhost است، مطمئن باشید از HTTPS استفاده نمی‌کنیم
+        if "localhost" not in forwarded_host:
+            backend_url = f"{forwarded_proto}://{forwarded_host}"
+    
+    # Fallback
+    if not backend_url:
+        backend_url = "http://localhost:8000"
+    
+    print(f"📤 Upload: saving to {backend_url}/uploads/{unique_filename}")
+    
     return f"{backend_url}/uploads/{unique_filename}"
 
 
 @router.post("", response_model=dict)
 async def upload_image(
     file: UploadFile = File(...),
+    request: Request = None,
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
     """آپلود تصویر (فقط ادمین)"""
     try:
-        file_url = save_upload_file(file)
+        file_url = save_upload_file(file, request)
         
         return {
             "success": True,
@@ -84,6 +105,7 @@ async def upload_image(
 @router.post("/batch", response_model=dict)
 async def upload_multiple_images(
     files: List[UploadFile] = File(...),
+    request: Request = None,
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
     """آپلود چند تصویر برای اسلایدر (فقط ادمین)"""
@@ -98,7 +120,7 @@ async def upload_multiple_images(
     
     for file in files:
         try:
-            file_url = save_upload_file(file)
+            file_url = save_upload_file(file, request)
             uploaded_urls.append(file_url)
         except HTTPException as e:
             errors.append({"filename": file.filename, "error": str(e.detail)})

@@ -1,8 +1,30 @@
 import axios from 'axios'
 
-// API Base URL from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+// Detect backend URL dynamically
+function getBackendUrl() {
+  // If environment variable is set, use it
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  
+  // If in GitHub Codespaces, build URL from current hostname
+  if (window.location.hostname.includes('github.dev')) {
+    // Replace port 3000/3001 with 8000
+    const baseUrl = window.location.hostname.replace(/:\d+/, '')
+    return `https://${baseUrl.replace(/-3000|-3001/, '-8000')}`
+  }
+  
+  // Fallback to localhost
+  return 'http://localhost:8000'
+}
+
+// API Base URL from environment variables or auto-detected
+const API_BASE_URL = getBackendUrl()
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000
+
+// Log backend URL
+console.log('🔌 Backend URL:', API_BASE_URL)
+console.log('🌐 Frontend Hostname:', window.location.hostname)
 
 // Create axios instance with default config
 const apiClient = axios.create({
