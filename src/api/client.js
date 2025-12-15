@@ -6,14 +6,21 @@ function getBackendUrl() {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL
   }
-  
+
   // If in GitHub Codespaces, build URL from current hostname
   if (window.location.hostname.includes('github.dev')) {
-    // Replace port 3000/3001 with 8000
-    const baseUrl = window.location.hostname.replace(/:\d+/, '')
-    return `https://${baseUrl.replace(/-3000|-3001/, '-8000')}`
+    // Replace frontend port (3000/3001) with backend port (8000) in subdomain
+    const hostname = window.location.hostname
+    // Remove any existing port
+    const cleanHostname = hostname.replace(/:\d+$/, '')
+
+    // Replace the port part in the subdomain
+    const backendHostname = cleanHostname.replace(/-3000\.app\.github\.dev/, '-8000.app.github.dev')
+                                        .replace(/-3001\.app\.github\.dev/, '-8000.app.github.dev')
+
+    return `https://${backendHostname}`
   }
-  
+
   // Fallback to localhost
   return 'http://localhost:8000'
 }
@@ -33,7 +40,9 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
-  }
+  },
+  // Force axios to not modify the URL
+  url: undefined
 })
 
 // Request interceptor - برای اضافه کردن token و سایر headers

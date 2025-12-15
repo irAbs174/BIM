@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import Home from '../views/Home.vue'
+import MediaArchive from '../views/MediaArchive.vue'
+import ArticleDetailPage from '../views/ArticleDetailPage.vue'
+import ProjectDetailPage from '../views/ProjectDetailPage.vue'
 import GalleryArchive from '../views/GalleryArchive.vue'
 import ArticlesArchive from '../views/ArticlesArchive.vue'
 import AdminLogin from '../views/AdminLogin.vue'
@@ -12,6 +15,7 @@ import AdminTestimonials from '../views/AdminTestimonials.vue'
 import AdminContacts from '../views/AdminContacts.vue'
 import AdminSliders from '../views/AdminSliders.vue'
 import AdminCertificates from '../views/AdminCertificates.vue'
+import AdminComments from '../views/AdminComments.vue'
 import AdminReports from '../views/AdminReports.vue'
 import AdminUsers from '../views/AdminUsers.vue'
 import AdminLayout from '../components/AdminLayout.vue'
@@ -38,15 +42,55 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    meta: {
+      title: 'مهندسین مشاور دانش‌بنیان BIM | مدل‌سازی اطلاعات ساختمان',
+      description: 'شرکت مهندسین مشاور دانش‌بنیان BIM ارائه‌دهنده خدمات مدل‌سازی اطلاعات ساختمان (BIM)، طراحی معماری و سازه، تاسیسات مکانیکی و الکتریکی'
+    }
+  },
+  {
+    path: '/media',
+    name: 'MediaArchive',
+    component: MediaArchive,
+    meta: {
+      title: 'مقالات و گالری | مهندسین مشاور دانش‌بنیان BIM',
+      description: 'مقالات تخصصی BIM، آموزش‌های مدل‌سازی اطلاعات ساختمان و گالری پروژه‌های انجام شده'
+    }
+  },
+  {
+    path: '/article/:id',
+    name: 'ArticleDetail',
+    component: ArticleDetailPage,
+    meta: {
+      title: 'مقاله | مهندسین مشاور دانش‌بنیان BIM',
+      description: 'مقالات تخصصی در زمینه مدل‌سازی اطلاعات ساختمان'
+    }
+  },
+  {
+    path: '/project/:id',
+    name: 'ProjectDetail',
+    component: ProjectDetailPage,
+    meta: {
+      title: 'پروژه | گالری مهندسین مشاور BIM',
+      description: 'نمونه کارها و پروژه‌های انجام شده با فناوری BIM'
+    }
   },
   {
     path: '/gallery',
+    redirect: '/media?tab=gallery'
+  },
+  {
+    path: '/articles',
+    redirect: '/media?tab=articles'
+  },
+  // Keep old routes for backward compatibility (will be redirected)
+  {
+    path: '/gallery-old',
     name: 'GalleryArchive',
     component: GalleryArchive
   },
   {
-    path: '/articles',
+    path: '/articles-old',
     name: 'ArticlesArchive',
     component: ArticlesArchive
   },
@@ -99,6 +143,11 @@ const routes = [
         path: 'certificates',
         name: 'AdminCertificates',
         component: AdminCertificates
+      },
+      {
+        path: 'comments',
+        name: 'AdminComments',
+        component: AdminComments
       },
       {
         path: 'users',

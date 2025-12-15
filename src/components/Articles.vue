@@ -70,11 +70,12 @@
       
       <!-- Articles Grid -->
       <TransitionGroup name="articles-list" tag="div" class="articles-grid">
-        <article 
+        <router-link
           v-for="article in paginatedArticles" 
-          :key="article.id" 
+          :key="article.id"
+          :to="`/article/${article.id}`"
           class="article-card"
-          @click="openArticle(article)"
+          tag="article"
         >
           <div class="article-image">
             <ImageSlider
@@ -113,7 +114,7 @@
               </a>
             </div>
           </div>
-        </article>
+        </router-link>
       </TransitionGroup>
       
       <!-- Load More / Pagination -->
@@ -521,6 +522,8 @@ const handleSortChange = (newSort) => {
   flex-direction: column;
   cursor: pointer;
   position: relative;
+  text-decoration: none;
+  color: inherit;
 }
 
 .article-card::before {

@@ -25,7 +25,7 @@
           🎨 گالری
         </router-link>
         <router-link to="/admin/testimonials" class="nav-item" :class="{ active: isActive('testimonials') }" @click="closeSidebar">
-          ⭐ نظرات
+          ⭐ دیدگاه های برتر
         </router-link>
         <router-link to="/admin/contacts" class="nav-item" :class="{ active: isActive('contacts') }" @click="closeSidebar">
           📧 پیام‌ها
@@ -38,6 +38,9 @@
         </router-link>
         <router-link to="/admin/certificates" class="nav-item" :class="{ active: isActive('certificates') }" @click="closeSidebar">
           📜 گواهینامه‌ها
+        </router-link>
+        <router-link to="/admin/comments" class="nav-item" :class="{ active: isActive('comments') }" @click="closeSidebar">
+          💬 نظرات
         </router-link>
         <router-link to="/admin/services" class="nav-item" :class="{ active: isActive('services') }" @click="closeSidebar">
           🎯 خدمات
@@ -80,11 +83,12 @@ const pageTitle = computed(() => {
     'AdminReports': '📈 گزارش‌ها',
     'AdminArticles': '📝 مقالات',
     'AdminGallery': '🎨 گالری',
-    'AdminTestimonials': '⭐ نظرات',
+    'AdminTestimonials': '⭐ نظرات مشتریان',
     'AdminContacts': '📧 پیام‌های تماس',
     'AdminUsers': '👤 کاربران',
     'AdminSliders': '🎬 اسلایدرها',
-    'AdminCertificates': '📜 گواهینامه‌ها و استانداردها'
+    'AdminCertificates': '📜 گواهینامه‌ها و استانداردها',
+    'AdminComments': '💬 نظرات و امتیازات'
   }
   return titles[route.name] || 'پنل مدیریت'
 })

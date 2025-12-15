@@ -10,8 +10,8 @@
         <ul class="nav-links" :class="{ 'active': mobileMenuOpen }">
           <li><router-link to="/" class="nav-link" @click="handleNavClick('#home')">خانه</router-link></li>
           <li><a href="#" class="nav-link" @click.prevent="handleNavClick('#services')">خدمات</a></li>
-          <li><a href="#" class="nav-link" @click.prevent="handleNavClick('#gallery')">گالری</a></li>
-          <li><a href="#" class="nav-link" @click.prevent="handleNavClick('#articles')">مقالات</a></li>
+          <li><router-link to="/media?tab=gallery" class="nav-link" @click="closeMobileMenu">گالری</router-link></li>
+          <li><router-link to="/media?tab=articles" class="nav-link" @click="closeMobileMenu">مقالات</router-link></li>
           <li><a href="#" class="nav-link" @click.prevent="handleNavClick('#certificates')">گواهینامه‌ها</a></li>
           <li><a href="#" class="nav-link" @click.prevent="handleNavClick('#contact')">تماس</a></li>
         </ul>

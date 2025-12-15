@@ -87,7 +87,7 @@ export const getArticles = async (params = {}) => {
  * @param {Number} id - شناسه مقاله
  * @returns {Promise<Object>} مقاله
  */
-export const getArticleById = async (id) => {
+export const getArticle = async (id) => {
   try {
     const response = await apiClient.get(`/api/articles/${id}`)
     return response.data
@@ -102,6 +102,9 @@ export const getArticleById = async (id) => {
     throw error
   }
 }
+
+// Alias for backward compatibility
+export const getArticleById = getArticle
 
 /**
  * ایجاد مقاله جدید (فقط برای ادمین)
@@ -172,7 +175,7 @@ export const getGalleryItems = async (params = {}) => {
  * @param {Number} id - شناسه آیتم
  * @returns {Promise<Object>} آیتم گالری
  */
-export const getGalleryItemById = async (id) => {
+export const getGalleryItem = async (id) => {
   try {
     const response = await apiClient.get(`/api/gallery/${id}`)
     return response.data
@@ -187,6 +190,9 @@ export const getGalleryItemById = async (id) => {
     throw error
   }
 }
+
+// Alias for backward compatibility
+export const getGalleryItemById = getGalleryItem
 
 // ============= TESTIMONIALS API =============
 
@@ -735,6 +741,102 @@ export const adminService = {
   deleteService: deleteAdminService
 }
 
+// ============= COMMENTS API =============
+
+/**
+ * دریافت لیست نظرات
+ * @param {Object} params - فیلترها (content_type, content_id, approved_only)
+ * @returns {Promise<Array>} لیست نظرات
+ */
+export const getComments = async (params = {}) => {
+  try {
+    const response = await apiClient.get('/api/comments', { params })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching comments:', error)
+    return []
+  }
+}
+
+/**
+ * دریافت یک نظر با شناسه
+ * @param {Number} commentId - شناسه نظر
+ * @returns {Promise<Object>} نظر
+ */
+export const getComment = async (commentId) => {
+  try {
+    const response = await apiClient.get(`/api/comments/${commentId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching comment:', error)
+    throw error
+  }
+}
+
+/**
+ * ایجاد نظر جدید
+ * @param {Object} commentData - اطلاعات نظر (name, email, content, rating, content_type, content_id)
+ * @returns {Promise<Object>} نظر ایجاد شده
+ */
+export const createComment = async (commentData) => {
+  try {
+    const response = await apiClient.post('/api/comments', commentData)
+    return response.data
+  } catch (error) {
+    console.error('Error creating comment:', error)
+    throw error
+  }
+}
+
+/**
+ * تایید یا رد نظر (فقط ادمین)
+ * @param {Number} commentId - شناسه نظر
+ * @returns {Promise<Object>} نظر به‌روزرسانی شده
+ */
+export const approveComment = async (commentId) => {
+  try {
+    const response = await apiClient.put(`/api/comments/${commentId}/approve`)
+    return response.data
+  } catch (error) {
+    console.error('Error approving comment:', error)
+    throw error
+  }
+}
+
+/**
+ * حذف نظر (فقط ادمین)
+ * @param {Number} commentId - شناسه نظر
+ * @returns {Promise<Object>} پاسخ حذف
+ */
+export const deleteComment = async (commentId) => {
+  try {
+    const response = await apiClient.delete(`/api/comments/${commentId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error deleting comment:', error)
+    throw error
+  }
+}
+
+/**
+ * دریافت آمار نظرات (فقط ادمین)
+ * @returns {Promise<Object>} آمار نظرات
+ */
+export const getCommentStats = async () => {
+  try {
+    const response = await apiClient.get('/api/comments/stats/summary')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching comment stats:', error)
+    return {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      average_rating: 0
+    }
+  }
+}
+
 // Export all services as default
 export default {
   // Admin
@@ -764,5 +866,13 @@ export default {
   
   // Contact
   sendContactForm,
-  subscribeNewsletter
+  subscribeNewsletter,
+  
+  // Comments
+  getComments,
+  getComment,
+  createComment,
+  approveComment,
+  deleteComment,
+  getCommentStats
 }

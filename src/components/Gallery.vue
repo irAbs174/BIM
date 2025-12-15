@@ -47,11 +47,11 @@
       
       <!-- Gallery Grid -->
       <TransitionGroup name="gallery-list" tag="div" class="gallery-grid">
-        <div 
+        <router-link
           v-for="item in displayItems" 
-          :key="item.id" 
+          :key="item.id"
+          :to="`/project/${item.id}`"
           class="gallery-card"
-          @click="openModal(item)"
         >
           <ImageSlider 
             class="card-image"
@@ -74,7 +74,7 @@
               <span v-for="tech in (item.technologies || []).slice(0, 3)" :key="tech" class="tag">{{ tech }}</span>
             </div>
           </div>
-        </div>
+        </router-link>
       </TransitionGroup>
       
       <!-- Empty State -->
@@ -132,14 +132,14 @@
               </div>
               
               <div class="modal-actions">
-                <button class="action-btn primary">
+                <router-link :to="`/project/${selectedItem.id}`" class="action-btn primary">
                   <span>🔗</span>
-                  مشاهده دمو
-                </button>
-                <button class="action-btn secondary">
+                  مشاهده بیشتر
+                </router-link>
+                <router-link to="/#contact" class="action-btn secondary">
                   <span>💬</span>
                   تماس با ما
-                </button>
+                </router-link>
               </div>
             </div>
             
@@ -483,6 +483,8 @@ const previousItem = () => {
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  text-decoration: none;
+  color: inherit;
 }
 
 .dark-mode .gallery-card {
@@ -924,6 +926,7 @@ const previousItem = () => {
   justify-content: center;
   gap: 0.5rem;
   min-width: 150px;
+  text-decoration: none;
 }
 
 .action-btn.primary {

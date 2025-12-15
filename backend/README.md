@@ -376,7 +376,7 @@ pip install pymysql
 DEBUG=False
 SECRET_KEY=generate-a-strong-random-secret-key-here
 DATABASE_URL=postgresql://user:pass@host:5432/db
-FRONTEND_URL=https://yourdomain.com
+FRONTEND_URL=https://b1m.ir
 ```
 
 ### 2. با Docker:

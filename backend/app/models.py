@@ -177,3 +177,22 @@ class Visit(Base):
     user_agent = Column(Text)
     referer = Column(String(500))
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class Comment(Base):
+    """مدل نظرات برای مقالات و پروژه‌ها"""
+    __tablename__ = "comments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    rating = Column(Integer, nullable=False)  # امتیاز 1 تا 5
+    approved = Column(Boolean, default=False, index=True)
+    
+    # نوع محتوا: article یا project
+    content_type = Column(String(20), nullable=False, index=True)
+    content_id = Column(Integer, nullable=False, index=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
