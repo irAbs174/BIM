@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/videos", tags=["videos"])
 
 # ============= عمومی (بدون احتیاج به احراز هویت) =============
 
-@router.get("/", response_model=list[VideoSchema])
+@router.get("", response_model=list[VideoSchema])
 async def get_videos(
     db: Session = Depends(get_db),
     active_only: bool = Query(True),
@@ -52,7 +52,7 @@ async def get_video(video_id: int, db: Session = Depends(get_db)):
 
 # ============= ادمین (احتیاج به احراز هویت) =============
 
-@router.post("/", response_model=VideoSchema)
+@router.post("", response_model=VideoSchema)
 async def create_video(
     video: VideoCreate,
     db: Session = Depends(get_db)
