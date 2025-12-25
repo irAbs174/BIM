@@ -53,9 +53,14 @@ export default {
       }
     };
     window.addEventListener('keydown', handleEscape);
-    this.$once('hook:beforeDestroy', () => {
+    this.cleanup = () => {
       window.removeEventListener('keydown', handleEscape);
-    });
+    };
+  },
+  beforeUnmount() {
+    if (this.cleanup) {
+      this.cleanup();
+    }
   }
 };
 </script>

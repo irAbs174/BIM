@@ -1,4 +1,22 @@
-FROM python:3.11-slim
+# Build frontend
+FROM node:18-alpine as frontend-build
+
+WORKDIR /app
+
+# Copy frontend files
+COPY package*.json ./
+COPY src ./src
+COPY public ./public
+COPY index.html ./
+COPY vite.config.js ./
+COPY vite-plugin-spa-fallback.js ./
+
+# Install dependencies and build
+RUN npm install
+RUN npm run build
+
+# Python backend
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
@@ -9,13 +27,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
-COPY . .
+COPY backend/ .
+
+# Copy built frontend to static directory
+COPY --from=frontend-build /app/dist ./static
 
 # Create uploads directory
 RUN mkdir -p uploads/team uploads/certificates uploads/licenses

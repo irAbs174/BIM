@@ -45,6 +45,23 @@
       <Footer />
     </div>
 
+     <!-- Admin Pages -->
+     <div v-else-if="currentPage === 'admin-login'" class="page-content">
+       <AdminLogin />
+     </div>
+
+     <div v-else-if="currentPage === 'admin-dashboard'" class="page-content">
+       <AdminDashboard />
+     </div>
+
+     <div v-else-if="currentPage === 'admin-content'" class="page-content">
+       <AdminContentManager />
+     </div>
+
+     <div v-else-if="currentPage === 'admin-settings'" class="page-content">
+       <AdminSettings />
+     </div>
+
     <ScrollToTop />
     <VideoPopup ref="videoPopup" />
   </div>
@@ -71,6 +88,10 @@ import ProjectsArchive from './components/ProjectsArchive.vue'
 import ProjectDetail from './components/ProjectDetail.vue'
 import FeaturedArticles from './components/FeaturedArticles.vue'
 import VideoPopup from './components/VideoPopup.vue'
+import AdminLogin from './components/AdminLogin.vue'
+import AdminDashboard from './components/AdminDashboard.vue'
+import AdminContentManager from './components/AdminContentManager.vue'
+import AdminSettings from './components/AdminSettings.vue'
 
 export default {
   name: 'App',
@@ -94,7 +115,11 @@ export default {
     ProjectsArchive,
     ProjectDetail,
     FeaturedArticles,
-    VideoPopup
+    VideoPopup,
+    AdminLogin,
+    AdminDashboard,
+    AdminContentManager,
+    AdminSettings
   },
   data() {
     return {
@@ -111,7 +136,7 @@ export default {
   mounted() {
     this.handleRouting();
     this.initIntersectionObserver();
-    
+
     // Listen for popstate (browser back/forward)
     window.addEventListener('popstate', () => {
       this.handleRouting();
@@ -121,19 +146,44 @@ export default {
     });
   },
   methods: {
+    checkAdminAuth() {
+      const token = localStorage.getItem('admin_token');
+      if (!token && window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/login')) {
+        this.navigateTo('/admin/login');
+        return false;
+      }
+      return true;
+    },
     handleRouting() {
       const pathname = window.location.pathname;
-      
-      if (pathname.startsWith('/article/')) {
-        this.currentPage = 'article-detail';
-      } else if (pathname === '/articles' || pathname === '/articles/') {
-        this.currentPage = 'articles';
-      } else if (pathname.startsWith('/project/')) {
-        this.currentPage = 'project-detail';
-      } else if (pathname === '/projects-archive' || pathname === '/projects-archive/') {
-        this.currentPage = 'projects';
-      } else {
-        this.currentPage = 'home';
+
+      // Admin routes
+      if (pathname === '/admin/login' || pathname === '/admin/login/') {
+        this.currentPage = 'admin-login';
+      } else if (pathname.startsWith('/admin')) {
+        if (this.checkAdminAuth()) {
+          if (pathname === '/admin' || pathname === '/admin/') {
+            this.currentPage = 'admin-dashboard';
+          } else if (pathname.includes('/settings')) {
+            this.currentPage = 'admin-settings';
+          } else {
+            this.currentPage = 'admin-content';
+          }
+        }
+      }
+      // Public routes
+      if (!pathname.startsWith('/admin')) {
+        if (pathname.startsWith('/article/')) {
+          this.currentPage = 'article-detail';
+        } else if (pathname === '/articles' || pathname === '/articles/') {
+          this.currentPage = 'articles';
+        } else if (pathname.startsWith('/project/')) {
+          this.currentPage = 'project-detail';
+        } else if (pathname === '/projects-archive' || pathname === '/projects-archive/') {
+          this.currentPage = 'projects';
+        } else {
+          this.currentPage = 'home';
+        }
       }
     },
     navigateTo(path) {
