@@ -78,9 +78,7 @@
               <span class="value">{{ companyInfo.founded_year }}</span>
             </div>
           </div>
-          <div v-else class="loading">
-            <p>در حال بارگذاری...</p>
-          </div>
+          <Loader v-else />
         </div>
       </div>
     </div>
@@ -89,9 +87,13 @@
 
 <script>
 import { contactService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'Contact',
+  components: {
+    Loader
+  },
   data() {
     return {
       form: {

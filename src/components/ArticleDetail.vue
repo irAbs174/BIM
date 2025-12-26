@@ -5,9 +5,7 @@
       <a href="#" @click.prevent="navigateTo('/articles')" class="btn-back">← بازگشت به مقالات</a>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading">
-        <p>درحال بارگذاری مقاله...</p>
-      </div>
+      <Loader v-if="loading" />
 
       <!-- Error State -->
       <div v-if="error" class="error">
@@ -80,9 +78,14 @@
 </template>
 
 <script>
+import Loader from './Loader.vue';
+
 export default {
   name: 'ArticleDetail',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       article: null,

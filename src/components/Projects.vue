@@ -1,7 +1,8 @@
 <template>
   <section class="projects-section" id="projects">
     <h2 class="section-title animate-on-scroll">پروژه‌های ما</h2>
-    <div class="projects-grid">
+    <Loader v-if="loading" />
+    <div class="projects-grid" v-if="!loading && !error">
       <div class="project-card animate-on-scroll" v-for="(project, index) in projects" :key="project.id">
         <div class="project-image">
           <img :src="project.image_url || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 300 250%27%3E%3Crect fill=%27%23ddd%27 width=%27300%27 height=%27250%27/%3E%3C/svg%3E'" :alt="project.title_fa || project.title_en">
@@ -26,10 +27,14 @@
 
 <script>
 import { projectService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'Projects',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       projects: [],

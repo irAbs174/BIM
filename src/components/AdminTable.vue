@@ -1,6 +1,6 @@
 <template>
   <div class="admin-table-container">
-    <div v-if="loading" class="loading">در حال بارگذاری...</div>
+    <Loader v-if="loading" />
     <table v-else-if="data.length > 0" class="admin-table">
       <thead>
         <tr>
@@ -34,8 +34,13 @@
 </template>
 
 <script>
+import Loader from './Loader.vue';
+
 export default {
   name: 'AdminTable',
+  components: {
+    Loader
+  },
   props: {
     data: {
       type: Array,

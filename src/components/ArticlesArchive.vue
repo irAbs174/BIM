@@ -23,9 +23,7 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading">
-        <p>درحال بارگذاری مقالات...</p>
-      </div>
+      <Loader v-if="loading" />
 
       <!-- Error State -->
       <div v-if="error" class="error">
@@ -88,10 +86,14 @@
 
 <script>
 import { articleService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'ArticlesArchive',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       articles: [],

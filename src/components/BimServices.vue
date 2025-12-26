@@ -1,7 +1,8 @@
 <template>
   <section class="bim-services" id="bim">
     <h2 class="section-title animate-on-scroll">خدمات BIM</h2>
-    <div class="services-grid">
+    <Loader v-if="loading" />
+    <div class="services-grid" v-if="!loading && !error">
       <div class="service-card animate-on-scroll" v-for="service in bimServices" :key="service.id">
         <h3>{{ service.title_fa || service.title_en }}</h3>
         <img 
@@ -20,9 +21,13 @@
 
 <script>
 import { serviceService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'BimServices',
+  components: {
+    Loader
+  },
   data() {
     return {
       bimServices: [],

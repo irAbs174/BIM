@@ -64,6 +64,9 @@
 
     <ScrollToTop />
     <VideoPopup ref="videoPopup" />
+    <div v-if="appLoading" class="app-loader">
+      <Loader />
+    </div>
   </div>
 </template>
 
@@ -92,6 +95,7 @@ import AdminLogin from './components/AdminLogin.vue'
 import AdminDashboard from './components/AdminDashboard.vue'
 import AdminContentManager from './components/AdminContentManager.vue'
 import AdminSettings from './components/AdminSettings.vue'
+import Loader from './components/Loader.vue'
 
 export default {
   name: 'App',
@@ -119,11 +123,13 @@ export default {
     AdminLogin,
     AdminDashboard,
     AdminContentManager,
-    AdminSettings
+    AdminSettings,
+    Loader
   },
   data() {
     return {
-      currentPage: 'home'
+      currentPage: 'home',
+      appLoading: true
     }
   },
   provide() {
@@ -236,7 +242,10 @@ export default {
             observer.unobserve(el);
           }
         });
-      }, 100);
+
+        // Hide app loader after animations are set up
+        this.appLoading = false;
+      }, 650);
     }
   }
 }
@@ -269,6 +278,19 @@ body {
 .page-content {
   width: 100%;
   min-height: 100vh;
+}
+
+.app-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
 /* Global Styles */

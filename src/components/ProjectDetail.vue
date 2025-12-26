@@ -5,9 +5,7 @@
       <a href="#" @click.prevent="navigateTo('/projects-archive')" class="btn-back">← بازگشت به آرشیو</a>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading">
-        <p>درحال بارگذاری پروژه...</p>
-      </div>
+      <Loader v-if="loading" />
 
       <!-- Error State -->
       <div v-if="error" class="error">
@@ -104,9 +102,14 @@
 </template>
 
 <script>
+import Loader from './Loader.vue';
+
 export default {
   name: 'ProjectDetail',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       project: null,

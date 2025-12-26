@@ -1,7 +1,8 @@
 <template>
   <section class="featured-articles-section" id="featured-articles">
     <h2 class="section-title animate-on-scroll">مقالات و اخبار</h2>
-    <div class="articles-grid">
+    <Loader v-if="loading" />
+    <div class="articles-grid" v-if="!loading && !error">
       <article class="article-card animate-on-scroll" v-for="(article, index) in articles" :key="article.id">
         <div class="article-image">
           <img :src="article.image_url || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 300 200%27%3E%3Crect fill=%27%23ddd%27 width=%27300%27 height=%27200%27/%3E%3C/svg%3E'" :alt="article.title_fa || article.title_en">
@@ -27,10 +28,14 @@
 
 <script>
 import { articleService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'FeaturedArticles',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       articles: [],

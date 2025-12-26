@@ -16,9 +16,7 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading">
-        <p>درحال بارگذاری پروژه‌ها...</p>
-      </div>
+      <Loader v-if="loading" />
 
       <!-- Error State -->
       <div v-if="error" class="error">
@@ -52,10 +50,14 @@
 
 <script>
 import { projectService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'ProjectsArchive',
   inject: ['navigateTo'],
+  components: {
+    Loader
+  },
   data() {
     return {
       projects: [],

@@ -1,7 +1,8 @@
 <template>
   <section class="certificates">
     <h2 class="section-title animate-on-scroll">گواهی‌نامه‌ها</h2>
-    <div class="cert-grid">
+    <Loader v-if="loading" />
+    <div class="cert-grid" v-if="!loading && !error">
       <div class="cert-item animate-on-scroll" v-for="cert in certificates" :key="cert.id">
         <img 
           :src="cert.image_url || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 300%27%3E%3Crect fill=%27%23f5f5f5%27 width=%27200%27 height=%27300%27/%3E%3C/svg%3E'" 
@@ -16,9 +17,13 @@
 
 <script>
 import { certificateService } from '../services/api';
+import Loader from './Loader.vue';
 
 export default {
   name: 'Certificates',
+  components: {
+    Loader
+  },
   data() {
     return {
       certificates: [],
