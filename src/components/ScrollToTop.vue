@@ -37,7 +37,7 @@ export default {
   left: 30px;
   width: 50px;
   height: 50px;
-  background: #1abc9c;
+  background: #87CEEB;
   border-radius: 5px;
   display: flex;
   align-items: center;

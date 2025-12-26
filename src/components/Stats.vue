@@ -27,7 +27,7 @@ export default {
 
 <style scoped>
 .stats {
-  background: #1abc9c;
+  background: #00BFFF;
   color: white;
   padding: 22px 30px;
   display: grid;

@@ -191,7 +191,7 @@ export default {
   }
 
   .nav-list a:hover {
-    color: #1abc9c;
+    color: #87CEEB;
   }
 
   .nav-list a::after {
@@ -201,7 +201,7 @@ export default {
     left: 0;
     right: 0;
     height: 2px;
-    background-color: #1abc9c;
+    background-color: #87CEEB;
     transform: scaleX(0);
     transform-origin: right;
     transition: transform 0.3s ease;
@@ -302,7 +302,7 @@ export default {
 .nav-list-mobile a:active,
 .nav-list-mobile a:hover {
   background-color: #f5f5f5;
-  color: #1abc9c;
+  color: #87CEEB;
 }
 
 /* Transitions */

@@ -8,7 +8,7 @@
       <p class="fade-in" style="animation-delay: 0.2s;">شرکت ما خدمات مختلفی و راهکارهای جغرافیایی برای کسب‌وکارهای سراسر جهان ارائه می‌دهد.</p>
       <div class="hero-buttons">
         <button class="play-btn fade-in" style="animation-delay: 0.4s;" @click="playVideo">▶</button>
-        <button class="btn btn-primary fade-in" style="animation-delay: 0.4s;">تماس با ما</button>
+        <button class="btn btn-primary fade-in" style="animation-delay: 0.4s;" @click="scrollTo('contact')">تماس با ما</button>
       </div>
     </div>
     <video-popup ref="videoPopup"></video-popup>
@@ -23,6 +23,7 @@ export default {
   components: {
     VideoPopup
   },
+  inject: ['scrollTo'],
   mounted() {
     const video = this.$el.querySelector('.hero-video')
     console.log('Hero video element:', video)
@@ -121,12 +122,12 @@ export default {
 }
 
 .btn-primary {
-  background-color: #1abc9c;
+  background-color: #00BFFF;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #16a085;
+  background-color: #0099CC;
 }
 
 .play-btn {

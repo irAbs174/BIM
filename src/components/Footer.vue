@@ -69,7 +69,7 @@ footer h3 {
 }
 
 footer a {
-  color: #1abc9c;
+  color: #87CEEB;
   text-decoration: none;
   font-size: 14px;
   display: block;

@@ -1,10 +1,10 @@
 <template>
   <section class="cta">
-    <div class="cta-item animate-on-scroll">
+    <div class="cta-item animate-on-scroll" @click="scrollTo('contact')">
       <p style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase;">برنامه‌ریزی یک پروژه؟</p>
       <h2>ما را استخدام کنید</h2>
     </div>
-    <div class="cta-item animate-on-scroll">
+    <div class="cta-item animate-on-scroll" @click="scrollTo('contact')">
       <p style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase;">می‌خواهید به تیم ما بپیوندید؟</p>
       <h2>با ما کار کنید</h2>
     </div>
@@ -13,13 +13,14 @@
 
 <script>
 export default {
-  name: 'CTA'
+  name: 'CTA',
+  inject: ['scrollTo']
 }
 </script>
 
 <style scoped>
 .cta {
-  background: #1abc9c;
+  background: #87CEEB;
   color: white;
   padding: 60px 50px;
   display: grid;

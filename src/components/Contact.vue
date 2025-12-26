@@ -191,7 +191,7 @@ export default {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #1abc9c;
+  color: #87CEEB;
 }
 
 .info-items {
@@ -217,7 +217,7 @@ export default {
 }
 
 .info-item a {
-  color: #1abc9c;
+  color: #87CEEB;
   text-decoration: none;
   transition: color 0.3s ease;
 }
@@ -259,7 +259,7 @@ export default {
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #1abc9c;
+  border-color: #87CEEB;
 }
 
 .form-group textarea {
@@ -307,7 +307,7 @@ export default {
 }
 
 .btn-send {
-  background: #1abc9c;
+  background: #87CEEB;
   color: white;
   padding: 15px 40px;
   border: none;

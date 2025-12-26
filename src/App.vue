@@ -13,7 +13,7 @@
       <FeaturedArticles />
       <Certificates />
       <Team />
-      <Contact />
+      <Contact id="contact" />
       <Footer />
     </div>
 
@@ -130,7 +130,8 @@ export default {
     const self = this;
     return {
       navigateTo: function(path) { return self.navigateTo(path); },
-      playVideo: function(videoUrl) { return self.playVideo(videoUrl); }
+      playVideo: function(videoUrl) { return self.playVideo(videoUrl); },
+      scrollTo: function(section) { return self.scrollTo(section); }
     }
   },
   mounted() {
@@ -196,6 +197,12 @@ export default {
     },
     playVideo(videoUrl) {
       this.$refs.videoPopup.openPopup(videoUrl);
+    },
+    scrollTo(section) {
+      const el = document.getElementById(section);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
     },
     initIntersectionObserver() {
       // Initialize Intersection Observer for scroll-triggered animations
@@ -267,11 +274,11 @@ body {
 /* Global Styles */
 .section-title {
   text-align: center;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: bold;
-  margin: 60px 0 50px;
+  margin: 40px 0 30px;
   position: relative;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
 
 .section-title::after {
@@ -282,7 +289,7 @@ body {
   transform: translateX(50%);
   width: 60px;
   height: 2px;
-  background: #1abc9c;
+  background: #87CEEB;
 }
 
 .btn {
@@ -308,12 +315,12 @@ body {
 }
 
 .btn-primary {
-  background-color: #1abc9c;
+  background-color: #87CEEB;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #16a085;
+  background-color: #6BB9E8;
 }
 
 /* Responsive */
@@ -326,29 +333,29 @@ body {
 
 @media (max-width: 768px) {
   .section-title {
-    font-size: 22px;
-    margin: 30px 0 20px;
-    padding-bottom: 15px;
-  }
-
-  .section-title::after {
-    width: 50px;
-    height: 2px;
-    background: #1abc9c;
-  }
-}
-
-@media (max-width: 480px) {
-  .section-title {
-    font-size: 16px;
-    margin: 20px 0 15px;
+    font-size: 20px;
+    margin: 25px 0 15px;
     padding-bottom: 10px;
   }
 
   .section-title::after {
     width: 50px;
     height: 2px;
-    background: #1abc9c;
+    background: #00BFFF;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 14px;
+    margin: 15px 0 10px;
+    padding-bottom: 5px;
+  }
+
+  .section-title::after {
+    width: 50px;
+    height: 2px;
+    background: #00BFFF;
   }
 }
 </style>
