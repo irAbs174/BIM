@@ -69,8 +69,8 @@ export const licenseService = {
 };
 
 export const contactService = {
-  submit: (data) => api.post('/contact/submit', data),
-  getCompanyInfo: () => api.get('/contact'),
+  submit: (data) => api.post('/contact', data),
+  getCompanyInfo: () => api.get('/company-info'),
 };
 
 export const authService = {
