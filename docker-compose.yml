@@ -54,6 +54,24 @@ services:
       - ./backend/uploads:/app/uploads
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
+  seeder:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://geobiro:geobiro_password@postgres:5432/geobiro_db
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-with-32-chars-min}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@geobiro.ba}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python -m app.seeder
+    profiles:
+      - seeder
+
 volumes:
   postgres_data:
   redis_data:

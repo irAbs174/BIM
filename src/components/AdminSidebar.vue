@@ -88,6 +88,16 @@
         <li>
           <a
             href="#"
+            @click.prevent="$emit('navigate', '/admin/users')"
+            :class="{ active: isActive('/admin/users') }"
+          >
+            <span class="icon">👤</span>
+            کاربران
+          </a>
+        </li>
+        <li>
+          <a
+            href="#"
             @click.prevent="$emit('navigate', '/admin/settings')"
             :class="{ active: isActive('/admin/settings') }"
           >

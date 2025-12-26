@@ -12,7 +12,7 @@ from app.core.config import get_settings
 from app.database import engine
 from app.models.models import Base
 from app.cache import init_redis
-from app.routers import auth, services, team, certificates, licenses, contact, projects, articles
+from app.routers import auth, services, team, certificates, licenses, contact, projects, articles, users
 
 # Configure logging
 logging.basicConfig(
@@ -129,6 +129,7 @@ app.include_router(team.router, prefix="/api")
 app.include_router(certificates.router, prefix="/api")
 app.include_router(licenses.router, prefix="/api")
 app.include_router(contact.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 
 
 # Health check endpoint

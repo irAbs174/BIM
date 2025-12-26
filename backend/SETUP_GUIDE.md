@@ -65,22 +65,56 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 
 The API will be available at: `http://localhost:8000`
 
+### Docker Deployment
+
+For production deployment using Docker:
+
+```bash
+# Build and start all services
+docker-compose up -d
+
+# Create initial admin user
+docker-compose --profile seeder up seeder
+
+# View logs
+docker-compose logs -f backend
+```
+
+**Docker Environment Variables:**
+- `ADMIN_USERNAME`: Admin username (default: 'admin')
+- `ADMIN_EMAIL`: Admin email (default: 'admin@geobiro.ba')
+- `ADMIN_PASSWORD`: Admin password (default: 'admin123')
+
 ### Initial Admin Setup
 
-Once the backend is running, you need to create an admin user:
+Create the initial admin user using the seeder script:
 
-1. Go to `http://localhost:8000/api/docs` (Swagger UI)
-2. Click on POST `/auth/register`
-3. Submit credentials:
-   ```json
-   {
-     "username": "admin",
-     "email": "admin@geobiro.ba",
-     "password": "secure_password_min_8_chars"
-   }
-   ```
-4. Save the returned `access_token`
-5. Subsequent users can be registered via the same endpoint (they won't be admins)
+```bash
+# Navigate to backend directory
+cd /home/unique/projects/geobiro/backend
+
+# Run the seeder script
+python -m app.seeder
+
+# Or run directly
+python app/seeder.py
+
+# Optional: specify custom credentials
+python -m app.seeder --username myadmin --email admin@example.com --password mysecurepass
+```
+
+**Environment Variables for Admin Credentials:**
+You can set these in your `.env` file:
+- `ADMIN_USERNAME`: Default 'admin'
+- `ADMIN_EMAIL`: Default 'admin@geobiro.ba'
+- `ADMIN_PASSWORD`: Default 'admin123' (change after first login!)
+
+**Default Admin Credentials:**
+- Username: `admin`
+- Email: `admin@geobiro.ba`
+- Password: `admin123`
+
+⚠️ **Important:** Change the default password after first login for security!
 
 ---
 

@@ -14,12 +14,19 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    is_admin: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
 class UserResponse(UserBase):
     id: int
     is_admin: bool
     is_active: bool
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 

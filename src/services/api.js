@@ -145,4 +145,11 @@ export const adminSettingsService = {
   updateStatistics: (data) => api.put('/contact/admin/statistics', data),
 };
 
+export const adminUserService = {
+  getAll: () => api.get('/users'),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+};
+
 export default api;
