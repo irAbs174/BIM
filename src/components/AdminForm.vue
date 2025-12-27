@@ -275,8 +275,8 @@ export default {
           ];
         case 'certificates':
           return [
-            { key: 'title_fa', label: 'عنوان (فارسی)', type: 'text', placeholder: 'عنوان گواهینامه به فارسی', required: true },
             { key: 'title_en', label: 'عنوان (انگلیسی)', type: 'text', placeholder: 'Certificate title in English', required: true },
+            { key: 'title_fa', label: 'عنوان (فارسی)', type: 'text', placeholder: 'عنوان گواهینامه به فارسی', required: false },
             { key: 'description_fa', label: 'توضیحات (فارسی)', type: 'textarea', placeholder: 'توضیحات گواهینامه به فارسی', rows: 4 },
             { key: 'description_en', label: 'توضیحات (انگلیسی)', type: 'textarea', placeholder: 'Certificate description in English', rows: 4 },
             { key: 'issue_date', label: 'تاریخ صدور', type: 'text', placeholder: '۱۴۰۲/۰۱/۱۵' },
@@ -285,8 +285,8 @@ export default {
           ];
         case 'licenses':
           return [
-            { key: 'title_fa', label: 'عنوان (فارسی)', type: 'text', placeholder: 'عنوان مجوز به فارسی', required: true },
             { key: 'title_en', label: 'عنوان (انگلیسی)', type: 'text', placeholder: 'License title in English', required: true },
+            { key: 'title_fa', label: 'عنوان (فارسی)', type: 'text', placeholder: 'عنوان مجوز به فارسی', required: false },
             { key: 'description_fa', label: 'توضیحات (فارسی)', type: 'textarea', placeholder: 'توضیحات مجوز به فارسی', rows: 4 },
             { key: 'description_en', label: 'توضیحات (انگلیسی)', type: 'textarea', placeholder: 'License description in English', rows: 4 },
             { key: 'issue_date', label: 'تاریخ صدور', type: 'text', placeholder: '۱۴۰۲/۰۱/۱۵' },
